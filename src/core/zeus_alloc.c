@@ -14,14 +14,14 @@ zeus_memory_pool_t *zeus_create_memory_pool(zeus_log_t *log){
     alloc_pool = (zeus_memory_pool_t *)zeus_alloc_p(sizeof(zeus_memory_pool_t));
 
     if(alloc_pool == NULL){
-        zeus_write_log(log,ZEUS_LOG_ERROR,"%s","memory pool create error");
+        zeus_write_log(log,ZEUS_LOG_ERROR,"memory pool create error");
         return NULL;
     }
     
     alloc_block = zeus_memory_alloc_block();
 
     if(alloc_block == NULL){
-        zeus_write_log(log,ZEUS_LOG_ERROR,"%s","alloc first block error");
+        zeus_write_log(log,ZEUS_LOG_ERROR,"alloc first block error");
         free(alloc_pool);
         return NULL;
     }
@@ -48,7 +48,7 @@ void *zeus_memory_alloc(zeus_memory_pool_t *pool,zeus_size_t size){
         // go to alloc large block
         alloc_large = zeus_memory_alloc_large(size);
         if(alloc_large == NULL){
-            zeus_write_log(pool->log,ZEUS_LOG_ERROR,"%s","alloc large block error");
+            zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc large block error");
             return NULL;
         }
         alloc_large->next_large_block = pool->next_large_block;
@@ -76,7 +76,7 @@ void *zeus_memory_alloc(zeus_memory_pool_t *pool,zeus_size_t size){
         // go to alloc block
         alloc = zeus_memory_alloc_block();
         if(alloc == NULL){
-            zeus_write_log(pool->log,ZEUS_LOG_ERROR,"%s","alloc memory block error");
+            zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc memory block error");
             if(iter == NULL){
                 iter = pool->iter_block;
             }

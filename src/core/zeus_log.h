@@ -42,5 +42,6 @@ struct zeus_log_s{
 
 zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level);
 zeus_log_res_t zeus_write_log(zeus_log_t *,zeus_log_level_t,const zeus_char_t *,...);
+zeus_log_res_t zeus_write_log_to_stderr(zeus_log_level_t,const zeus_char_t *,...);
 
 #endif

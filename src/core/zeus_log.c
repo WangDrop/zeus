@@ -10,7 +10,6 @@
 static zeus_char_t *zeus_log_time(zeus_char_t *beg,zeus_char_t *end);
 static zeus_char_t *zeus_log_level(zeus_uint_t level,zeus_char_t *beg,zeus_char_t *end);
 static zeus_char_t *zeus_log_pid(zeus_char_t *beg,zeus_char_t *end);
-static zeus_log_res_t zeus_write_log_to_stderr(zeus_log_level_t,const zeus_char_t *,...);
 
 static const zeus_char_t *zeus_log_level_string[] = \
                     {                         \
@@ -30,7 +29,7 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
     alloc = (zeus_log_t *)malloc(sizeof(zeus_log_t));
 
     if(alloc == NULL){
-        zeus_write_log_to_stderr(ZEUS_LOG_ERROR,"%s","malloc zeus_log_t error");
+        zeus_write_log_to_stderr(ZEUS_LOG_ERROR,"malloc zeus_log_t error");
         return NULL;
     }
 
@@ -38,7 +37,7 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
 
     alloc->path = (zeus_string_t *)malloc(sizeof(zeus_string_t));
     if(alloc->path == NULL){
-        zeus_write_log_to_stderr(ZEUS_LOG_ERROR,"%s","malloc zeus_string_t error");
+        zeus_write_log_to_stderr(ZEUS_LOG_ERROR,"malloc zeus_string_t error");
         free(alloc);
         return NULL;
     }
@@ -46,7 +45,7 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
     if(path == NULL){
         alloc->path->data = (zeus_char_t *)malloc(sizeof("/dev/stderr"));
         if(alloc->path->data == NULL){
-            zeus_write_log_to_stderr(ZEUS_LOG_ERROR,"%s","malloc zeus_char_t array error");
+            zeus_write_log_to_stderr(ZEUS_LOG_ERROR,"malloc zeus_char_t array error");
             free(alloc->path);
             free(alloc);
             return NULL;
@@ -57,7 +56,7 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
     }else{
         alloc->path->data = (zeus_char_t *)malloc(path->size);
         if(alloc->path->data == NULL){
-            zeus_write_log_to_stderr(ZEUS_LOG_ERROR,"%s","malloc zeus_char_t array error");
+            zeus_write_log_to_stderr(ZEUS_LOG_ERROR,"malloc zeus_char_t array error");
             free(alloc->path);
             free(alloc);
             return NULL;
