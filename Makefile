@@ -25,10 +25,14 @@ PROCESS_COMMAND=zeus_process.c
 HASH_DEPENDENCY=zeus_common.h zeus_hash.h zeus_hash.c
 HASH_COMMAND=zeus_hash.c
 
+CONFIG_DEPENDENCY=zeus_common.h zeus_config.h zeus_config.c
+CONFIG_COMMAND=zeus_config.c
+
 ZEUS_DEPENDENCY=zeus_common.h zeus.h zeus.c
 ZEUS_COMMAND=zeus.c
 
-ALL_OBJ=zeus_string.o zeus_log.o zeus_times.o zeus_alloc.o zeus_file.o zeus_process.o zeus_hash.o zeus.o
+ALL_OBJ=zeus_string.o zeus_log.o zeus_times.o zeus_alloc.o zeus_file.o \
+		zeus_process.o zeus_hash.o zeus_config.o zeus.o
 
 zeus:$(ALL_OBJ)
 	cc $(ALL_OBJ) -o zeus
@@ -54,8 +58,11 @@ zeus_process.o:$(PROCESS_DEPENDENCY)
 zeus_hash.o:$(HASH_DEPENDENCY)
 	cc -c $(SOURCE_CORE_DIR)/$(HASH_COMMAND)
 
+zeus_config.o:$(CONFIG_DEPENDENCY)
+	cc -c $(SOURCE_CORE_DIR)/$(CONFIG_COMMAND)
+
 zeus.o:$(ZEUS_DENPENDENCY)
-	cc -c $(SOURCE_CORE_DIR)/$(ZEUS_COMMAND)
+	cc -c $(SOURCE_CORE_DIR)/$(ZEUS_COMMAND) 
 
 .PHONY:clean
 clean:

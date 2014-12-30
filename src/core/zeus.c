@@ -3,13 +3,22 @@
  *   Date : 2014-12-24
  */
 
-#include "zeus_common.h"
+#include "zeus.h"
 
 zeus_process_t *process;
 
 int main(int argc,char *argv[]){
     
-    process = zeus_create_process();
+    if((process = zeus_create_process()) == NULL){
+        exit(-1);
+    }
+
+    if(zeus_init_process(process) == ZEUS_ERROR){
+        exit(-1);
+    }
+
+    zeus_log_config(process->config,process->log);
+    
     
     return 0;
 

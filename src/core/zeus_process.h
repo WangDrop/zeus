@@ -16,10 +16,13 @@ struct zeus_process_s{
 
     zeus_log_t *log; //log
 
+    zeus_config_t *config; //config
+
 };
 
 
 zeus_process_t *zeus_create_process(void);
+zeus_status_t zeus_init_process(zeus_process_t *);
 
 
 #endif

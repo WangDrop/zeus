@@ -39,5 +39,6 @@ zeus_hash_t *zeus_create_hash_table(zeus_memory_pool_t *);
 zeus_hash_data_t *zeus_get_hash_data_node(zeus_memory_pool_t *);
 zeus_uint_t zeus_get_hash_key(zeus_string_t *);
 void zeus_insert_hash_data_node(zeus_hash_t *,zeus_hash_data_t *);
+void zeus_log_hash_table(zeus_hash_t *,zeus_log_t *log);
 
 #endif

@@ -46,18 +46,8 @@ zeus_hash_data_t *zeus_get_hash_data_node(zeus_memory_pool_t *pool){
     }
 
     alloc_hash_data->next = NULL;
-
-    alloc_hash_data->s = (zeus_string_t *)zeus_memory_alloc(pool,sizeof(zeus_string_t));
-    if(alloc_hash_data->s == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc hash source data memory error");
-        return NULL;
-    }
-
-    alloc_hash_data->d = (zeus_string_t *)zeus_memory_alloc(pool,sizeof(zeus_string_t));
-    if(alloc_hash_data->d == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc hash destination data memory error");
-        return NULL;
-    }
+    alloc_hash_data->s = NULL;
+    alloc_hash_data->d = NULL;
 
     return alloc_hash_data;
 
@@ -84,6 +74,24 @@ void zeus_insert_hash_data_node(zeus_hash_t *ht,zeus_hash_data_t *hd){
     hd->next = ht->bucket[key];
     
     ht->bucket[key] = hd;
+
+    return ;
+
+}
+
+void zeus_log_hash_table(zeus_hash_t *ht,zeus_log_t *log){
+    
+    zeus_uint_t idx;
+    zeus_hash_data_t *node;
+
+    for(idx = 0 ; idx < ZEUS_HASH_BUCKET_SIZE ; ++ idx){
+        node = ht->bucket[idx];
+        while(node != NULL){
+            zeus_write_log(log,ZEUS_LOG_NOTICE,"%s = %s",node->s->data,node->d->data);
+            node = node->next;
+        }
+    
+    }
 
     return ;
 
