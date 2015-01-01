@@ -18,6 +18,8 @@ struct zeus_process_s{
 
     zeus_config_t *config; //config
 
+    zeus_list_data_t *buffer_pool; //object pool
+
 };
 
 

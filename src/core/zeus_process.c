@@ -29,6 +29,8 @@ zeus_process_t *zeus_create_process(void){
 
     alloc_process->pool = alloc_pool;
     alloc_process->log = alloc_log;
+    alloc_process->config = NULL;
+    alloc_process->buffer_pool = NULL;
 
     return alloc_process;
 

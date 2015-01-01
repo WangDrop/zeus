@@ -74,6 +74,7 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
     }
 
     alloc->status = ZEUS_LOG_OPEN;
+    alloc->buf = NULL;
 
     return alloc;
 }

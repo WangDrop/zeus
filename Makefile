@@ -28,11 +28,18 @@ HASH_COMMAND=zeus_hash.c
 CONFIG_DEPENDENCY=zeus_common.h zeus_config.h zeus_config.c
 CONFIG_COMMAND=zeus_config.c
 
+LIST_DEPENDENCY=zeus_common.h zeus_list.h zeus_list.c
+LIST_COMMAND=zeus_list.c
+
+BUFFER_DEPENDENCY=zeus_common.h zeus_buffer.h zeus_buffer.c
+BUFFER_COMMAND=zeus_buffer.c
+
 ZEUS_DEPENDENCY=zeus_common.h zeus.h zeus.c
 ZEUS_COMMAND=zeus.c
 
 ALL_OBJ=zeus_string.o zeus_log.o zeus_times.o zeus_alloc.o zeus_file.o \
-		zeus_process.o zeus_hash.o zeus_config.o zeus.o
+		zeus_process.o zeus_hash.o zeus_config.o zeus_list.o zeus_buffer.o \
+		zeus.o
 
 zeus:$(ALL_OBJ)
 	cc $(ALL_OBJ) -o zeus
@@ -60,6 +67,12 @@ zeus_hash.o:$(HASH_DEPENDENCY)
 
 zeus_config.o:$(CONFIG_DEPENDENCY)
 	cc -c $(SOURCE_CORE_DIR)/$(CONFIG_COMMAND)
+
+zeus_list.o:$(LIST_DEPENDENCY)
+	cc -c $(SOURCE_CORE_DIR)/$(LIST_COMMAND)
+
+zeus_buffer.o:$(BUFFER_DEPENDENCY)
+	cc -c $(SOURCE_CORE_DIR)/$(BUFFER_COMMAND)
 
 zeus.o:$(ZEUS_DENPENDENCY)
 	cc -c $(SOURCE_CORE_DIR)/$(ZEUS_COMMAND) 
