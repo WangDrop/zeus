@@ -1,0 +1,285 @@
+#!/bin/bash
+
+# command-line options parsing
+# 2015-01-09
+
+# command-line record
+
+COMMAND_LINE_RECORD="$*"
+
+# user and group information
+
+ZEUS_USER=
+ZEUS_GROUP=
+
+
+# worker count and port
+
+ZEUS_WORKER=4
+ZEUS_PORT=13131
+
+
+# pid file and log file
+
+ZEUS_PID_DIR=
+ZEUS_LOG_DIR=
+ZEUS_CONFIG_DIR=
+
+
+# time resolution
+
+ZEUS_RESOLUTION=50
+
+# current dirname
+
+ZEUS_PREFIX=$(pwd)
+
+
+# version information
+
+ZEUS_VERSION=1.1.0
+
+
+usage(){
+    
+    echo "Usage : ./configuration [options] "   1>&2
+    cat<<EOF
+        --help                  help information
+        --version               version information
+        --user=username         user configuration
+        --group=groupname       group configuration
+        --worker=n              worker process configuration
+        --port=m                port configuration
+        --resolution=t          time resolution configuration
+        --log-dir=log           log file configuration
+        --pid-dir=pid           pid file configuration
+        --conf-dir=conf         config file 
+EOF
+    return 1
+
+}
+
+
+for options
+do
+    case $options in
+        --*=*)
+            value_=$(echo $options | sed 's/[-_0-9A-Za-z]*=//')
+            ;;
+        --*)
+            ;;
+        *)
+            echo "Unknown option : $options"
+            echo "Please use ./configure --help to check"
+            exit 1
+            ;;
+    esac
+
+    case $options in
+        --help)
+            usage
+            exit 1
+            ;;
+        --version)
+            echo "version : zeus $ZEUS_VERSION"
+            echo "author  : y5a9f2y"
+            echo " email  : ydzhao1992#gmail.com"
+            exit 1
+            ;;
+        --user=*)
+            ZEUS_USER=$value_
+            ;;
+        --group=*)
+            ZEUS_GROUP=$value_
+            ;;
+        --worker=*)
+            ZEUS_WORKER=$value_
+            ;;
+        --port=*)
+            ZEUS_PORT=$value_
+            ;;
+        --resolution=*)
+            ZEUS_RESOLUTION=$value_
+            ;;
+        --log-dir=*)
+            ZEUS_LOG_DIR=$value_
+            ;;
+        --pid-dir=*)
+            ZEUS_PID_DIR=$value_
+            ;;
+        --conf-dir=*)
+            ZEUS_CONFIG_DIR=$value_
+            ;;
+        *)
+            echo "Unknown option : $options"
+            echo "Please use ./configure --help to check"
+            exit 1
+            ;;
+    esac
+
+done
+
+umask 022
+
+echo -n "check user $ZEUS_USER ... "
+
+if [ -n "$ZEUS_USER" ] && cat /etc/passwd | awk -F: '{print $1}' | grep "$ZEUS_USER" 1>/dev/null
+then
+    echo "success !"
+else
+    echo "doesn't exists !"
+    exit 1
+fi
+
+
+
+echo -n "check group $ZEUS_GROUP ... "
+
+if [ -n "$ZEUS_GROUP" ] && cat /etc/group | awk -F: '{print $1}' | grep $ZEUS_GROUP 1>/dev/null
+then
+    echo "success !"
+else
+    echo "doesn't exists !"
+    exit 1
+fi
+
+
+
+echo -n "check the number of worker process $ZEUS_WORKER ... "
+
+if [ $ZEUS_WORKER -lt 1 ]
+then
+    echo "error , must greater than zero !"
+    exit 1
+else
+    echo "success !"
+fi
+
+
+
+echo -n "check port $ZEUS_PORT ... "
+
+if [ $ZEUS_PORT -lt 1 ] | [ $ZEUS_PORT -gt 65535 ]
+then
+    echo "error , port must be 1-65535 !"
+    exit 1
+else
+    echo "success !"
+fi
+
+
+
+echo -n "check resolution $ZEUS_RESOLUTION ... "
+
+if [ $ZEUS_RESOLUTION -lt 1 ]
+then
+    echo "error , resolution must be greater than zero !"
+    exit 1
+else
+    echo "success !"
+fi
+
+
+
+echo -n "check log directory $ZEUS_LOG_DIR ... "
+
+if [ -n "$ZEUS_LOG_DIR" ]
+then
+    :
+else
+    echo "log directory can't be empty !"
+    exit 1
+fi
+
+
+case $ZEUS_LOG_DIR in
+    ~/*)
+        tmp_=$(echo $ZEUS_LOG_DIR | sed -n 's/~//p')
+        ZEUS_LOG_DIR="$HOME$tmp_"
+        ;;
+    ~*)
+        tmp_=$(echo $ZEUS_LOG_DIR | sed -n "s/~/\//p")
+        ZEUS_LOG_DIR="$HOME$tmp_"
+        ;;
+    *)
+        ;;
+esac
+
+
+if [ -d "$ZEUS_LOG_DIR" ]
+then
+    echo "exists !"
+else
+    echo "doesn't exists !"
+    echo -n "create directory $ZEUS_LOG_DIR ... "
+    if mkdir -p "$ZEUS_LOG_DIR" 1>/dev/null 2>/dev/null
+    then
+        if chown $ZEUS_USER:$ZEUS_GROUP $ZEUS_LOG_DIR 1>/dev/null 2>/dev/null
+        then
+            echo "success !"
+        else
+            echo "change owner relationship error"
+            exit 1
+        fi
+    else
+        echo "fail !"
+        exit 1
+    fi
+fi
+
+
+ZEUS_PID_DIR=$(echo $ZEUS_PID_DIR)
+
+echo -n "check pid file directory $ZEUS_PID_DIR ... "
+
+if [ -n "$ZEUS_PID_DIR" ]
+then
+    :
+else
+    echo "pid file directory can't be empty"
+    exit 1
+fi
+
+if [ -d $ZEUS_PID_DIR ]
+then
+    echo "exists !"
+    echo -n "check pid file dir privilege ... "
+    if touch $(echo "$ZEUS_PID_DIR/zeus.$$.pid") 1>/dev/null 2>/dev/null
+    then
+        echo "success !"
+        rm "zeus.$$.pid"
+    else
+        echo "fail !"
+        exit 1
+    fi
+
+else
+    echo "doesn't exists !"
+    exit 1
+fi
+
+
+
+echo -n "check config file dir path $ZEUS_CONFIG_DIR ... "
+
+if [ -d $ZEUS_CONFIG_DIR ]
+then
+    echo "exists !"
+else
+    echo "doesn't exists !"
+    echo -n "create config file directory ... "
+    if mkdir $ZEUS_CONFIG_DIR 1>/dev/null 2>/dev/null
+    then
+        if chown $ZEUS_USER:$ZEUS_GROUP $ZEUS_CONFIG_DIR 1>/dev/null 2>/dev/null
+        then
+            echo "success !"
+        else
+            echo "fail !"
+        fi
+    else
+        echo "fail !"
+        exit 1
+    fi
+fi
+
+
