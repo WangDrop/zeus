@@ -135,7 +135,7 @@ fi
 
 echo -n "check group $ZEUS_GROUP ... "
 
-if [ -n "$ZEUS_GROUP" ] && cat /etc/group | awk -F: '{print $1}' | grep $ZEUS_GROUP 1>/dev/null
+if [ -n "$ZEUS_GROUP" ] && cat /etc/group | awk -F: '{print $1}' | grep "$ZEUS_GROUP" 1>/dev/null
 then
     echo "success !"
 else
@@ -180,6 +180,18 @@ else
 fi
 
 
+case "$ZEUS_LOG_DIR" in
+    ~\/*)
+        tmp_=$(echo "$ZEUS_LOG_DIR" | sed -n 's/^~//p')
+        ZEUS_LOG_DIR="$HOME$tmp_"
+        ;;
+    ~*)
+        tmp_=$(echo "$ZEUS_LOG_DIR" | sed -n "s/^~/\//p")
+        ZEUS_LOG_DIR="$HOME$tmp_"
+        ;;
+    *)
+        ;;
+esac
 
 echo -n "check log directory $ZEUS_LOG_DIR ... "
 
@@ -191,21 +203,6 @@ else
     exit 1
 fi
 
-
-case $ZEUS_LOG_DIR in
-    ~/*)
-        tmp_=$(echo $ZEUS_LOG_DIR | sed -n 's/~//p')
-        ZEUS_LOG_DIR="$HOME$tmp_"
-        ;;
-    ~*)
-        tmp_=$(echo $ZEUS_LOG_DIR | sed -n "s/~/\//p")
-        ZEUS_LOG_DIR="$HOME$tmp_"
-        ;;
-    *)
-        ;;
-esac
-
-
 if [ -d "$ZEUS_LOG_DIR" ]
 then
     echo "exists !"
@@ -214,7 +211,7 @@ else
     echo -n "create directory $ZEUS_LOG_DIR ... "
     if mkdir -p "$ZEUS_LOG_DIR" 1>/dev/null 2>/dev/null
     then
-        if chown $ZEUS_USER:$ZEUS_GROUP $ZEUS_LOG_DIR 1>/dev/null 2>/dev/null
+        if chown "$ZEUS_USER":"$ZEUS_GROUP" "$ZEUS_LOG_DIR" 1>/dev/null 2>/dev/null
         then
             echo "success !"
         else
@@ -227,8 +224,19 @@ else
     fi
 fi
 
+case "$ZEUS_PID_DIR" in
+    ~\/*)
+        tmp_=$(echo "$ZEUS_PID_DIR" | sed -n 's/^~//p')
+        ZEUS_PID_DIR="$HOME$tmp_"
+        ;;
+    ~*)
+        tmp_=$(echo "$ZEUS_PID_DIR" | sed -n 's/^~/\//p')
+        ZEUS_PID_DIR="$HOME$tmp_"
+        ;;
+    *)
+        ;;
+esac
 
-ZEUS_PID_DIR=$(echo $ZEUS_PID_DIR)
 
 echo -n "check pid file directory $ZEUS_PID_DIR ... "
 
@@ -240,14 +248,14 @@ else
     exit 1
 fi
 
-if [ -d $ZEUS_PID_DIR ]
+if [ -d "$ZEUS_PID_DIR" ]
 then
     echo "exists !"
     echo -n "check pid file dir privilege ... "
-    if touch $(echo "$ZEUS_PID_DIR/zeus.$$.pid") 1>/dev/null 2>/dev/null
+    if touch "$(echo $ZEUS_PID_DIR/zeus.$$.pid)" 1>/dev/null 2>/dev/null
     then
         echo "success !"
-        rm "zeus.$$.pid"
+        rm "$(echo $ZEUS_PID_DIR/zeus.$$.pid)"
     else
         echo "fail !"
         exit 1
@@ -260,17 +268,34 @@ fi
 
 
 
+
+
+case "$ZEUS_CONFIG_DIR" in
+    ~\/*)
+        tmp_=$(echo "$ZEUS_CONFIG_DIR" | sed -n 's/^~//p')
+        ZEUS_CONFIG_DIR="$HOME$tmp_"
+        ;;
+    ~*)
+        tmp_=$(echo "$ZEUS_CONFIG_DIR" | sed -n 's/^~/\//p')
+        ZEUS_CONFIG_DIR="$HOME$tmp_"
+        ;;
+    *)
+        ;;
+esac
+
+
+
 echo -n "check config file dir path $ZEUS_CONFIG_DIR ... "
 
-if [ -d $ZEUS_CONFIG_DIR ]
+if [ -d "$ZEUS_CONFIG_DIR" ]
 then
     echo "exists !"
 else
     echo "doesn't exists !"
     echo -n "create config file directory ... "
-    if mkdir $ZEUS_CONFIG_DIR 1>/dev/null 2>/dev/null
+    if mkdir "$ZEUS_CONFIG_DIR" 1>/dev/null 2>/dev/null
     then
-        if chown $ZEUS_USER:$ZEUS_GROUP $ZEUS_CONFIG_DIR 1>/dev/null 2>/dev/null
+        if chown "$ZEUS_USER":"$ZEUS_GROUP" "$ZEUS_CONFIG_DIR" 1>/dev/null 2>/dev/null
         then
             echo "success !"
         else
@@ -281,5 +306,3 @@ else
         exit 1
     fi
 fi
-
-
