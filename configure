@@ -1,4 +1,7 @@
 #!/bin/bash
 
 . auto/options
-
+. auto/headers
+. auto/config
+. auto/make
+. auto/install

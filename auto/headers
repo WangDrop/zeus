@@ -1,0 +1,134 @@
+#!/bin/bash
+
+
+# check headers
+# 2015-01-11
+
+
+
+BUILD_DIR=build_
+SRC_DIR=src
+CORE_DIR=core
+EVENT_DIR=event
+LOGIC_DIR=logic
+LIB_CHECK_FILE=
+ZEUS_SRC_CORE_CHECK_FILE=
+CHECK_FILE_SRC="zeus.$$.check.tmp.c"
+CHECK_FILE_OBJ="zeus.$$.check.tmp"
+
+
+
+check_file_(){
+    
+    if [ $# -eq 1 ]
+    then
+        :
+    else
+        echo "check lib headers error"
+        exit 1
+    fi
+    
+    tmp_=$(echo $1 | sed 's/[^\/]*\///g')
+
+    echo -n "check $tmp_ ... "
+
+    echo "#include \"$1\"" 1>"$BUILD_DIR/$CHECK_FILE_SRC" 2>/dev/null
+    echo "int main(void){" 1>>"$BUILD_DIR/$CHECK_FILE_SRC" 2>/dev/null
+    echo "return 0;" 1>>"$BUILD_DIR/$CHECK_FILE_SRC" 2>/dev/null
+    echo "}" 1>>"$BUILD_DIR/$CHECK_FILE_SRC" 2>/dev/null
+
+    cc "$BUILD_DIR/$CHECK_FILE_SRC" -o "$BUILD_DIR/$CHECK_FILE_OBJ" 1>/dev/null 2>/dev/null
+
+    if [ -f "$BUILD_DIR/$CHECK_FILE_OBJ" ]
+    then
+        echo "exists !"
+    else
+        echo "not exists !"
+        exit 1
+    fi
+    
+    rm -rf "$BUILD_DIR/$CHECK_FILE_SRC" 1>/dev/null 2>/dev/null
+    rm -rf "$BUILD_DIR/$CHECK_FILE_OBJ" 1>/dev/null 2>/dev/null
+
+    return 0
+
+    
+}
+
+
+echo -n "check build directory ... "
+
+if [ -d "$BUILD_DIR" ]
+then
+    echo "exists !"
+else
+    echo "not exists !"
+    echo -n "create build directory ... "
+    if mkdir "$BUILD_DIR" 1>/dev/null 2>/dev/null
+    then
+        echo "success !"
+        echo -n "change ownership of $BUILD_DIR ... "
+        if chown "$ZEUS_USER:$ZEUS_GROUP" "$BUILD_DIR" 1>/dev/null 2>/dev/null
+        then
+            echo "success !"
+        else
+            echo "fail !"
+            exit 1
+        fi
+    else
+        echo "fail !"
+        exit 1
+    fi
+fi
+
+
+
+echo 
+echo "check lib headers ... "
+echo 
+
+
+LIB_CHECK_FILE="$LIB_CHECK_FILE stdio"
+LIB_CHECK_FILE="$LIB_CHECK_FILE stdlib"
+LIB_CHECK_FILE="$LIB_CHECK_FILE sys/types"
+LIB_CHECK_FILE="$LIB_CHECK_FILE unistd"
+LIB_CHECK_FILE="$LIB_CHECK_FILE sys/time"
+LIB_CHECK_FILE="$LIB_CHECK_FILE time"
+LIB_CHECK_FILE="$LIB_CHECK_FILE signal"
+LIB_CHECK_FILE="$LIB_CHECK_FILE string"
+LIB_CHECK_FILE="$LIB_CHECK_FILE fcntl"
+LIB_CHECK_FILE="$LIB_CHECK_FILE errno"
+LIB_CHECK_FILE="$LIB_CHECK_FILE stdarg"
+LIB_CHECK_FILE="$LIB_CHECK_FILE unistd"
+
+for libfile in $LIB_CHECK_FILE
+do
+    check_file_ "$libfile.h"
+done
+
+
+
+echo
+echo "check zeus headers ... "
+echo
+
+check_file_ "../$SRC_DIR/$CORE_DIR/zeus_common.h"
+
+
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_alloc"
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_buffer"
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_config"
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_file"
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_hash"
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_list"
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_log"
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_process"
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_string"
+ZEUS_SRC_CORE_CHECK_FILE="$ZEUS_SRC_CORE_CHECK_FILE zeus_times"
+
+for zeusfile in $ZEUS_SRC_CORE_CHECK_FILE
+do
+    check_file_ "../$SRC_DIR/$CORE_DIR/$zeusfile.h"
+done
+
+check_file_ "../$SRC_DIR/$CORE_DIR/zeus.h"

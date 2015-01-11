@@ -119,7 +119,11 @@ do
 
 done
 
+
+
 umask 022
+
+
 
 echo -n "check user $ZEUS_USER ... "
 
@@ -180,6 +184,7 @@ else
 fi
 
 
+
 case "$ZEUS_LOG_DIR" in
     ~\/*)
         tmp_=$(echo "$ZEUS_LOG_DIR" | sed -n 's/^~//p')
@@ -197,32 +202,13 @@ echo -n "check log directory $ZEUS_LOG_DIR ... "
 
 if [ -n "$ZEUS_LOG_DIR" ]
 then
-    :
+    echo "success !"
 else
     echo "log directory can't be empty !"
     exit 1
 fi
 
-if [ -d "$ZEUS_LOG_DIR" ]
-then
-    echo "exists !"
-else
-    echo "doesn't exists !"
-    echo -n "create directory $ZEUS_LOG_DIR ... "
-    if mkdir -p "$ZEUS_LOG_DIR" 1>/dev/null 2>/dev/null
-    then
-        if chown "$ZEUS_USER":"$ZEUS_GROUP" "$ZEUS_LOG_DIR" 1>/dev/null 2>/dev/null
-        then
-            echo "success !"
-        else
-            echo "change owner relationship error"
-            exit 1
-        fi
-    else
-        echo "fail !"
-        exit 1
-    fi
-fi
+
 
 case "$ZEUS_PID_DIR" in
     ~\/*)
@@ -242,31 +228,11 @@ echo -n "check pid file directory $ZEUS_PID_DIR ... "
 
 if [ -n "$ZEUS_PID_DIR" ]
 then
-    :
+    echo "success !"
 else
     echo "pid file directory can't be empty"
     exit 1
 fi
-
-if [ -d "$ZEUS_PID_DIR" ]
-then
-    echo "exists !"
-    echo -n "check pid file dir privilege ... "
-    if touch "$(echo $ZEUS_PID_DIR/zeus.$$.pid)" 1>/dev/null 2>/dev/null
-    then
-        echo "success !"
-        rm "$(echo $ZEUS_PID_DIR/zeus.$$.pid)"
-    else
-        echo "fail !"
-        exit 1
-    fi
-
-else
-    echo "doesn't exists !"
-    exit 1
-fi
-
-
 
 
 
@@ -284,25 +250,14 @@ case "$ZEUS_CONFIG_DIR" in
 esac
 
 
-
 echo -n "check config file dir path $ZEUS_CONFIG_DIR ... "
 
-if [ -d "$ZEUS_CONFIG_DIR" ]
+if [ -n $ZEUS_CONFIG_DIR ]
 then
-    echo "exists !"
+    echo "success !"
 else
-    echo "doesn't exists !"
-    echo -n "create config file directory ... "
-    if mkdir "$ZEUS_CONFIG_DIR" 1>/dev/null 2>/dev/null
-    then
-        if chown "$ZEUS_USER":"$ZEUS_GROUP" "$ZEUS_CONFIG_DIR" 1>/dev/null 2>/dev/null
-        then
-            echo "success !"
-        else
-            echo "fail !"
-        fi
-    else
-        echo "fail !"
-        exit 1
-    fi
+    echo "config file's path can not be empty !"
+    exit 1
 fi
+
+

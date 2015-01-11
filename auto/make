@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Generate Makefile
+# 2015-01-11
+
+
+echo
+echo "Generate Makefile ... "
+echo
+
+if touch "Makefile" 1>/dev/null 2>/dev/null
+then
+    :
+else
+    echo "can not create the Makefile , check the privilege !"
+    exit 1
+fi
+
+
+exec 6>&1
+exec 1>"Makefile"
+
+
+echo "SOURCE_CORE_DIR=$SRC_DIR/$CORE_DIR"
+echo "SOURCE_EVENT_DIR=$SRC_DIR/$EVENT_DIR"
+echo "SOURCE_LOGIC_DIR=$SRC_DIR/$LOGIC_DIR"
+echo
+
+
+
+echo "VPATH=\$(SOURCE_CORE_DIR):\$(SOURCE_EVENT_DIR):\$(SOURCE_LOGIC_DIR)"
+echo
+
+
+
+for headerfile in $ZEUS_SRC_CORE_CHECK_FILE
+do
+    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
+    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
+    echo "$tmp_dependency_=zeus_common.h $headerfile.h $headerfile.c"
+    echo "$tmp_command_=$headerfile.c"
+    echo 
+done
+
+
+
+echo "ZEUS_DEPENDENCY=zeus_common.h zeus.h zeus.c"
+echo "ZEUS_COMMAND=zeus.c"
+echo
+
+
+
+echo -n "ALL_OBJ="
+echo -n "zeus.o "
+
+for headerfile in $ZEUS_SRC_CORE_CHECK_FILE
+do
+    echo -n "$headerfile.o "
+done
+echo
+
+
+
+echo "zeus:\$(ALL_OBJ)"
+echo -e -n "\t"
+echo -n "cc "
+echo -n "$BUILD_DIR/zeus.o"
+for headerfile in $ZEUS_SRC_CORE_CHECK_FILE
+do
+    echo -n " $BUILD_DIR/$headerfile.o"
+done
+echo " -o zeus"
+echo
+
+
+echo "zeus.o:\$(ZEUS_DEPENDENCY)"
+echo -e -n "\t"
+echo "cc -c \$(SOURCE_CORE_DIR)/\$(ZEUS_COMMAND) -o $BUILD_DIR/zeus.o"
+echo 
+
+
+for headerfile in $ZEUS_SRC_CORE_CHECK_FILE
+do
+    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
+    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
+    echo "$headerfile.o:\$($tmp_dependency_)"
+    echo -e -n "\t"
+    echo "cc -c \$(SOURCE_CORE_DIR)/\$($tmp_command_) -o $BUILD_DIR/$headerfile.o"
+    echo 
+done
+
+
+echo
+echo ".PHONY:clean"
+echo "clean:"
+echo -n -e "\t"
+echo "rm -rf $BUILD_DIR $TMP_CONF_DIR Makefile zeus"
+echo
+
+exec 1>&6
+exec 6>&-

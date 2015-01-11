@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# generate configuration file
+# 2015-01-11
+
+
+echo
+echo "generate configuration file"
+echo 
+
+TMP_CONF_DIR=conf
+CONF_FILE_NAME=zeus.conf
+
+echo -n "check temp configuration directory ... "
+
+if [ -d "$TMP_CONF_DIR" ]
+then
+    echo "exists !"
+else
+    echo "not exists !"
+    echo -n "create temp configuration directory ... "
+    if mkdir "$TMP_CONF_DIR" 1>/dev/null 2>/dev/null
+    then
+        echo "success !"
+        echo -n "change ownership of $TMP_CONF_DIR ... "
+        if chown "$ZEUS_USER:$ZEUS_GROUP" "$TMP_CONF_DIR" 1>/dev/null 2>/dev/null
+        then
+            echo "success !"
+        else
+            echo "fail !"
+            exit 1
+        fi
+    else
+        echo "fail !"
+        exit 1
+    fi
+fi
+
+
+
+echo "check configuration file ... "
+
+if [ -f "$TMP_CONF_DIR/$CONF_FILE_NAME" ]
+then
+    echo "exists , re-generate !"
+else
+    echo "not exists ,generate !"
+    if touch "$TMP_CONF_DIR/$CONF_FILE_NAME" 1>/dev/null 2>/dev/null
+    then
+        echo "create configuration file success !"
+        echo -n "change ownership of configuration file ... "
+        if chown "$ZEUS_USER:$ZEUS_GROUP" "$TMP_CONF_DIR/$CONF_FILE_NAME" 1>/dev/null 2>/dev/null
+        then
+            echo "success !"
+        else
+            echo "fail !"
+            exit 1
+        fi
+    else
+        echo "create configuration file fail !"
+        exit 1
+    fi
+fi
+
+exec 6>&1
+exec 1>"$TMP_CONF_DIR/$CONF_FILE_NAME"
+
+echo "#"
+echo "# Example Configuration File"
+echo "# Date : $(date '+%Y-%m-%d')"
+echo "#"
+echo
+
+echo "# User Configuration"
+echo "user=$ZEUS_USER"
+echo 
+
+echo "# Group Configuration"
+echo "group=$ZEUS_GROUP"
+echo 
+
+echo "# Prefix Directory"
+echo "prefix=$ZEUS_PREFIX"
+echo 
+
+echo "# Log Directory"
+echo "log=$ZEUS_LOG_DIR"
+echo
+
+echo "# Pid Directory"
+echo "pid=$ZEUS_PID_DIR"
+echo
+
+echo "# Port"
+echo "port=$ZEUS_PORT"
+echo
+
+echo "# Worker Process Number"
+echo "worker=$ZEUS_WORKER"
+echo
+
+echo "# Timer Resolution"
+echo "timer=$ZEUS_RESOLUTION"
+echo
+
+exec 1>&6
+exec 6>&-
+
+echo "gonfiguration file generate successfully !"
+
+cat "$SRC_DIR/$CORE_DIR/zeus_common.h" | sed \
+	"s/#define ZEUS_CONFIGURATION_FILE/#define ZEUS_CONFIGURATION_FILE \"\..\/..\/$TMP_CONF_DIR\/$CONF_FILE_NAME\"/g" \
+	1>"$SRC_DIR/$CORE_DIR/zeus_common.h.new"
+
+mv "$SRC_DIR/$CORE_DIR/zeus_common.h.new" "$SRC_DIR/$CORE_DIR/zeus_common.h"
