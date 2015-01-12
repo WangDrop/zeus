@@ -46,8 +46,7 @@ typedef struct zeus_buffer_s zeus_buffer_t;
 typedef struct zeus_list_s zeus_list_t;
 typedef struct zeus_list_data_s  zeus_list_data_t;
 
-#define ZEUS_CONFIGURATION_FILE
-
+#include "../../build_/zeus_build.h"
 
 #include "zeus_alloc.h"
 #include "zeus_times.h"

@@ -10,27 +10,16 @@ echo ".PHONY:install"
 echo "install:"
 
 cat<<EOF
-	echo -n "check log directory ... "
-	(test -d "$ZEUS_LOG_DIR" || mkdir -p "$ZEUS_LOG_DIR") || (echo "create $ZEUS_LOG_DIR fail !" && exit 1)
-	echo "success !"
-	echo -n "change ownership of log directory ..."
-	chown "$ZEUS_USER:$ZEUS_GROUP" $ZEUS_LOG_DIR || (echo "fail !" && exit 1)
-	echo "success !"
+	(test -d "$ZEUS_LOG_DIR" || mkdir -p "$ZEUS_LOG_DIR") || exit 1
+	chown "$ZEUS_USER:$ZEUS_GROUP" $ZEUS_LOG_DIR || exit 1
 
-	echo -n "check pid directory ... "
-	test -d "$ZEUS_PID_DIR" || (echo "doesn't exist !" && exit 1)
-	echo "success !"
+	(test -d "$ZEUS_PID_DIR" || mkdir -p "$ZEUS_PID_DIR") || exit 1
+	chown "$ZEUS_USER:$ZEUS_GROUP" $ZEUS_PID_DIR || exit 1
 
-	echo -n "check configuration directory ... "
-	test -d "$ZEUS_CONFIG_DIR" || mkdir -p "$ZEUS_CONFIG_DIR" || (echo "create $ZEUS_CONFIG_DIR fail !" && exit 1)
-	echo "success !"
-	echo -n "change ownership of config directory ..."
-	chown "$ZEUS_USER:$ZEUS_GROUP" $ZEUS_CONFIG_DIR || (echo "fail !" && exit 1)
-	echo "success !"
+	test -d "$ZEUS_CONFIG_DIR" || mkdir -p "$ZEUS_CONFIG_DIR" || exit 1
+	chown "$ZEUS_USER:$ZEUS_GROUP" $ZEUS_CONFIG_DIR || exit 1
 	
-	echo -n "move configuration file ... "
-	cp "$TMP_CONF_DIR/$CONF_FILE_NAME" "$ZEUS_CONFIG_DIR/" || (echo "fail !" && exit 1)
-	echo "success !"
+	cp "$TMP_CONF_DIR/$CONF_FILE_NAME" "$ZEUS_CONFIG_DIR/" || exit 1
 EOF
 
 exec 1>&6

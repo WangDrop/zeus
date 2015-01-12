@@ -5,3 +5,4 @@
 . auto/config
 . auto/make
 . auto/install
+. auto/uninstall

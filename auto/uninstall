@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Uninstall script
+# 2015-01-12
+
+exec 6>&1
+exec 1>>"Makefile"
+
+
+echo
+echo
+echo ".PHONY:uninstall"
+echo "uninstall:"
+
+cat<<EOF
+	test -d "$ZEUS_LOG_DIR" && (rm -rf "$ZEUS_LOG_DIR" || exit 1)
+
+	test -d "$ZEUS_PID_DIR" && (rm -rf "$ZEUS_PID_DIR" || exit 1)
+
+	test -d "$ZEUS_CONFIG_DIR" && (rm -rf "$ZEUS_CONFIG_DIR" || exit 1)
+EOF
+
+
+exec 1>&6
+exec 6>&-

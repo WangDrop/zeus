@@ -8,10 +8,7 @@ echo
 echo "generate configuration file"
 echo 
 
-TMP_CONF_DIR=conf
-CONF_FILE_NAME=zeus.conf
-
-echo -n "check temp configuration directory ... "
+echo -n "check tmp configuration directory ... "
 
 if [ -d "$TMP_CONF_DIR" ]
 then
@@ -22,14 +19,6 @@ else
     if mkdir "$TMP_CONF_DIR" 1>/dev/null 2>/dev/null
     then
         echo "success !"
-        echo -n "change ownership of $TMP_CONF_DIR ... "
-        if chown "$ZEUS_USER:$ZEUS_GROUP" "$TMP_CONF_DIR" 1>/dev/null 2>/dev/null
-        then
-            echo "success !"
-        else
-            echo "fail !"
-            exit 1
-        fi
     else
         echo "fail !"
         exit 1
@@ -38,29 +27,18 @@ fi
 
 
 
-echo "check configuration file ... "
+echo -n "check configuration file ... "
 
 if [ -f "$TMP_CONF_DIR/$CONF_FILE_NAME" ]
 then
     echo "exists , re-generate !"
 else
     echo "not exists ,generate !"
-    if touch "$TMP_CONF_DIR/$CONF_FILE_NAME" 1>/dev/null 2>/dev/null
-    then
-        echo "create configuration file success !"
-        echo -n "change ownership of configuration file ... "
-        if chown "$ZEUS_USER:$ZEUS_GROUP" "$TMP_CONF_DIR/$CONF_FILE_NAME" 1>/dev/null 2>/dev/null
-        then
-            echo "success !"
-        else
-            echo "fail !"
-            exit 1
-        fi
-    else
-        echo "create configuration file fail !"
-        exit 1
-    fi
 fi
+
+
+
+echo "generate configuration file ... "
 
 exec 6>&1
 exec 1>"$TMP_CONF_DIR/$CONF_FILE_NAME"
@@ -106,10 +84,4 @@ echo
 exec 1>&6
 exec 6>&-
 
-echo "gonfiguration file generate successfully !"
-
-cat "$SRC_DIR/$CORE_DIR/zeus_common.h" | sed \
-	"s/#define ZEUS_CONFIGURATION_FILE/#define ZEUS_CONFIGURATION_FILE \"\..\/..\/$TMP_CONF_DIR\/$CONF_FILE_NAME\"/g" \
-	1>"$SRC_DIR/$CORE_DIR/zeus_common.h.new"
-
-mv "$SRC_DIR/$CORE_DIR/zeus_common.h.new" "$SRC_DIR/$CORE_DIR/zeus_common.h"
+echo "configuration file generate successfully !"

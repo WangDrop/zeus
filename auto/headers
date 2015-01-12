@@ -7,6 +7,7 @@
 
 
 BUILD_DIR=build_
+BUILD_H=zeus_build.h
 SRC_DIR=src
 CORE_DIR=core
 EVENT_DIR=event
@@ -55,6 +56,7 @@ check_file_(){
     
 }
 
+# create build directory
 
 echo -n "check build directory ... "
 
@@ -67,21 +69,68 @@ else
     if mkdir "$BUILD_DIR" 1>/dev/null 2>/dev/null
     then
         echo "success !"
-        echo -n "change ownership of $BUILD_DIR ... "
-        if chown "$ZEUS_USER:$ZEUS_GROUP" "$BUILD_DIR" 1>/dev/null 2>/dev/null
-        then
-            echo "success !"
-        else
-            echo "fail !"
-            exit 1
-        fi
     else
         echo "fail !"
         exit 1
     fi
 fi
 
+# check zeus_build.h
 
+echo -n "check build file ... "
+
+if [ -f "$BUILD_DIR/$BUILD_H" ]
+then
+	echo "exists , re-generate !"
+	if rm -rf "$BUILD_DIR/$BUILD_H"
+	then
+		:
+	else
+		echo "re-generate zeus_build.h fail !"
+	fi
+else
+	echo "doesn't exist , generate !"
+fi
+
+
+# create zeus_build.h
+
+echo -n "create build file ... "
+
+if touch "$BUILD_DIR/$BUILD_H" 1>/dev/null 2>/dev/null
+then
+	echo "success !"
+else
+	echo "fail !"
+	exit 1
+fi
+
+
+# generate the content of zeus_build.h
+
+exec 6>&1
+exec 1>"$BUILD_DIR/$BUILD_H"
+
+echo "#ifndef __ZEUS_BUILD_H_H_H__"
+echo "#define __ZEUS_BUILD_H_H_H__"
+
+echo 
+echo
+echo 
+
+echo "#define ZEUS_CONFIGURATION_FILE \"$ZEUS_CONFIG_DIR/$CONF_FILE_NAME\""
+
+echo
+echo
+echo
+
+echo "#endif"
+
+exec 1>&6
+exec 6>&-
+
+
+# check lib headers
 
 echo 
 echo "check lib headers ... "
