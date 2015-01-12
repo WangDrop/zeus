@@ -20,6 +20,19 @@ struct zeus_process_s{
 
     zeus_list_data_t *buffer_pool; //object pool
 
+
+
+	zeus_uid_t uid; //user id
+
+	zeus_gid_t gid; //group id
+
+	zeus_uint_t resolution; //time resolution
+
+	zeus_port_t port; //port
+
+	zeus_uint_t worker; //worker process count
+
+	
 };
 
 

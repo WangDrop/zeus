@@ -17,7 +17,14 @@ int main(int argc,char *argv[]){
         exit(-1);
     }
 
-    zeus_log_config(process->config,process->log);
+
+	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"uid=%d",process->uid);
+	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"gid=%d",process->gid);
+	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"worker=%d",process->worker);
+	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"resolution=%d",process->resolution);
+	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"port=%hd",process->port);
+
+    //zeus_log_config(process->config,process->log);
     
     
     return 0;

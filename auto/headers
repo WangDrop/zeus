@@ -21,7 +21,7 @@ CHECK_FILE_OBJ="zeus.$$.check.tmp"
 
 check_file_(){
     
-    if [ $# -eq 1 ]
+    if [ $# -eq 1 ] || [ $# -eq 2 ]
     then
         :
     else
@@ -29,7 +29,12 @@ check_file_(){
         exit 1
     fi
     
-    tmp_=$(echo $1 | sed 's/[^\/]*\///g')
+	if [ $# -eq 1 ]
+	then
+    	tmp_=$(echo $1 | sed 's/[^\/]*\///g')
+	else
+		tmp_=$1
+	fi
 
     echo -n "check $tmp_ ... "
 
@@ -38,7 +43,7 @@ check_file_(){
     echo "return 0;" 1>>"$BUILD_DIR/$CHECK_FILE_SRC" 2>/dev/null
     echo "}" 1>>"$BUILD_DIR/$CHECK_FILE_SRC" 2>/dev/null
 
-    cc "$BUILD_DIR/$CHECK_FILE_SRC" -o "$BUILD_DIR/$CHECK_FILE_OBJ" 1>/dev/null 2>/dev/null
+    cc "$BUILD_DIR/$CHECK_FILE_SRC" -o "$BUILD_DIR/$CHECK_FILE_OBJ" #1>/dev/null 2>/dev/null
 
     if [ -f "$BUILD_DIR/$CHECK_FILE_OBJ" ]
     then
@@ -149,10 +154,11 @@ LIB_CHECK_FILE="$LIB_CHECK_FILE fcntl"
 LIB_CHECK_FILE="$LIB_CHECK_FILE errno"
 LIB_CHECK_FILE="$LIB_CHECK_FILE stdarg"
 LIB_CHECK_FILE="$LIB_CHECK_FILE unistd"
+LIB_CHECK_FILE="$LIB_CHECK_FILE pwd"
 
 for libfile in $LIB_CHECK_FILE
 do
-    check_file_ "$libfile.h"
+    check_file_ "$libfile.h" -1
 done
 
 

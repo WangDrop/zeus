@@ -19,6 +19,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <inttypes.h>
+#include <pwd.h>
 
 typedef unsigned long zeus_ulong_t;
 typedef unsigned char zeus_uchar_t;
@@ -31,6 +33,10 @@ typedef int zeus_int_t;
 typedef int zeus_fd_t;
 typedef mode_t zeus_mode_t;
 typedef unsigned int zeus_status_t;
+typedef uid_t zeus_uid_t;
+typedef gid_t zeus_gid_t;
+typedef uint16_t zeus_port_t;
+typedef uint16_t zeus_ushort_t;
 
 #define ZEUS_OK 0x0
 #define ZEUS_ERROR 0x1
@@ -40,6 +46,7 @@ typedef struct zeus_memory_pool_s zeus_memory_pool_t;
 typedef struct zeus_string_s zeus_string_t;
 typedef struct zeus_log_s zeus_log_t;
 typedef struct zeus_hash_s zeus_hash_t;
+typedef struct zeus_hash_data_s zeus_hash_data_t;
 typedef struct zeus_process_s zeus_process_t;
 typedef struct zeus_config_s zeus_config_t;
 typedef struct zeus_buffer_s zeus_buffer_t;

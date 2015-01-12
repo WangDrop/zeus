@@ -67,6 +67,7 @@ zeus_uint_t zeus_get_hash_key(zeus_string_t *s){
 
 }
 
+
 void zeus_insert_hash_data_node(zeus_hash_t *ht,zeus_hash_data_t *hd){
     
     zeus_uint_t key = zeus_get_hash_key(hd->s);
@@ -94,5 +95,22 @@ void zeus_log_hash_table(zeus_hash_t *ht,zeus_log_t *log){
     }
 
     return ;
+
+}
+
+zeus_hash_data_t *zeus_hash_lookup(zeus_hash_t *h,zeus_string_t *s){
+	
+	zeus_uint_t val = zeus_get_hash_key(s);
+	zeus_hash_data_t *p = h->bucket[val];
+
+	while(p != NULL){
+		if(zeus_string_equal(s,p->s) == 0){
+			return p;
+		}else{
+			p = p->next;
+		}
+	}
+
+	return p;
 
 }

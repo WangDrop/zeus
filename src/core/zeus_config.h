@@ -10,6 +10,7 @@
 
 #include "zeus_common.h"
 
+
 struct zeus_config_s{
 
     zeus_hash_t *conf;
@@ -21,6 +22,15 @@ struct zeus_config_s{
 zeus_config_t *zeus_create_config(zeus_memory_pool_t *);
 zeus_status_t zeus_init_config(zeus_config_t *,zeus_memory_pool_t *);
 zeus_status_t zeus_parse_config_line(zeus_char_t *,zeus_int_t ,zeus_config_t *,zeus_memory_pool_t *);
-void zeus_log_config(zeus_config_t *config,zeus_log_t *log);
+void zeus_log_config(zeus_config_t *,zeus_log_t *);
+
+zeus_status_t zeus_config_check(zeus_config_t *,zeus_log_t *,zeus_hash_data_t **,zeus_string_t *);
+
+zeus_status_t zeus_config_get_uid(zeus_config_t *,zeus_log_t *,zeus_uid_t *);
+zeus_status_t zeus_config_get_gid(zeus_config_t *,zeus_log_t *,zeus_gid_t *);
+zeus_status_t zeus_config_get_resolution(zeus_config_t *,zeus_log_t *,zeus_uint_t *);
+zeus_status_t zeus_config_get_worker(zeus_config_t *,zeus_log_t *,zeus_uint_t *);
+zeus_status_t zeus_config_get_port(zeus_config_t *,zeus_log_t *,zeus_ushort_t *);
+
 
 #endif

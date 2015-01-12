@@ -10,6 +10,15 @@
 #define ZEUS_CONFIG_PATH_MAX 4096
 #define ZEUS_CONFIG_LINE_MAX 2048
 
+static zeus_string_t zeus_config_uid = {"user",sizeof("user")};
+static zeus_string_t zeus_config_gid = {"group",sizeof("group")};
+static zeus_string_t zeus_config_prefix = {"prefix",sizeof("prefix")};
+static zeus_string_t zeus_config_log = {"log",sizeof("log")};
+static zeus_string_t zeus_config_pid = {"pid",sizeof("pid")};
+static zeus_string_t zeus_config_port = {"port",sizeof("port")};
+static zeus_string_t zeus_config_worker = {"worker",sizeof("worker")};
+static zeus_string_t zeus_config_timer = {"timer",sizeof("timer")};
+
 zeus_config_t *zeus_create_config(zeus_memory_pool_t *pool){
     
     zeus_size_t nwrite;
@@ -174,5 +183,142 @@ zeus_status_t zeus_parse_config_line(zeus_char_t *line,zeus_int_t nread,zeus_con
 void zeus_log_config(zeus_config_t *config,zeus_log_t *log){
 
     zeus_log_hash_table(config->conf,log);
+
+}
+
+zeus_status_t zeus_config_check(zeus_config_t *config,zeus_log_t *log,\
+								zeus_hash_data_t **d,zeus_string_t *s){
+	
+	if((*d = zeus_hash_lookup(config->conf,s)) == NULL){
+		zeus_write_log(log,ZEUS_LOG_ERROR,"can not find the string %s in the mapping",s->data);
+		return ZEUS_ERROR;
+	}
+
+	return ZEUS_OK;
+
+}
+
+
+zeus_status_t zeus_config_get_uid(zeus_config_t *config,zeus_log_t *log,zeus_uid_t *uid){
+	
+	zeus_hash_data_t *hd;
+	zeus_int_t err;
+
+	struct passwd *pwd;
+
+	if(zeus_config_check(config,log,&hd,&zeus_config_uid) == ZEUS_ERROR){
+		return ZEUS_ERROR;
+	}
+
+	errno = 0;
+	if((pwd = getpwnam(hd->d->data)) == NULL){
+		err = errno;
+		if(err != 0){
+			zeus_write_log(log,ZEUS_LOG_ERROR,"get user %s's uid fail : %s",hd->d->data,strerror(err));
+		}else{
+			zeus_write_log(log,ZEUS_LOG_ERROR,"can not find the user : %s",hd->d->data);
+		}
+		return ZEUS_ERROR;
+	}
+
+	
+	*uid = pwd->pw_uid;
+
+	return ZEUS_OK;
+	
+}
+
+
+zeus_status_t zeus_config_get_gid(zeus_config_t *config,zeus_log_t *log,zeus_gid_t *gid){
+	
+	zeus_hash_data_t *hd;
+	zeus_int_t err;
+
+	struct passwd *pwd;
+
+	if(zeus_config_check(config,log,&hd,&zeus_config_gid) == ZEUS_ERROR){
+		return ZEUS_ERROR;
+	}
+	
+	errno = 0;
+	if((pwd = getpwnam(hd->d->data)) == NULL){
+		err = errno;
+		if(err != 0){
+			zeus_write_log(log,ZEUS_LOG_ERROR,"get user %s's gid fail : %s",hd->d->data,strerror(err));
+		}else{
+			zeus_write_log(log,ZEUS_LOG_ERROR,"can not find the user : %s",hd->d->data);
+		}
+		return ZEUS_ERROR;
+	}
+
+	*gid = pwd->pw_gid;
+
+	return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_config_get_resolution(zeus_config_t *config,zeus_log_t *log,zeus_uint_t *val){
+	
+	zeus_hash_data_t *hd;
+	zeus_char_t *beg;
+	zeus_char_t *end;
+	
+	if(zeus_config_check(config,log,&hd,&zeus_config_timer) == ZEUS_ERROR){
+		return ZEUS_ERROR;
+	}
+	
+	beg = hd->d->data;
+	end = hd->d->data + hd->d->size - 1;
+
+	if(zeus_string_to_uint(beg,end,val) == ZEUS_ERROR){
+		zeus_write_log(log,ZEUS_LOG_ERROR,"get timer resolution error");
+		return ZEUS_ERROR;
+	}
+
+	return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_config_get_worker(zeus_config_t *config,zeus_log_t *log,zeus_uint_t *val){
+
+	zeus_hash_data_t *hd;
+	zeus_char_t *beg;
+	zeus_char_t *end;
+	
+	if(zeus_config_check(config,log,&hd,&zeus_config_worker) == ZEUS_ERROR){
+		return ZEUS_ERROR;
+	}
+	
+	beg = hd->d->data;
+	end = hd->d->data + hd->d->size - 1;
+
+	if(zeus_string_to_uint(beg,end,val) == ZEUS_ERROR){
+		zeus_write_log(log,ZEUS_LOG_ERROR,"get worker number error");
+		return ZEUS_ERROR;
+	}
+
+	return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_config_get_port(zeus_config_t *config,zeus_log_t *log,zeus_ushort_t *val){
+
+	zeus_hash_data_t *hd;
+	zeus_char_t *beg;
+	zeus_char_t *end;
+	
+	if(zeus_config_check(config,log,&hd,&zeus_config_port) == ZEUS_ERROR){
+		return ZEUS_ERROR;
+	}
+	
+	beg = hd->d->data;
+	end = hd->d->data + hd->d->size - 1;
+
+	if(zeus_string_to_ushort(beg,end,val) == ZEUS_ERROR){
+		zeus_write_log(log,ZEUS_LOG_ERROR,"get worker number error");
+		return ZEUS_ERROR;
+	}
+
+	return ZEUS_OK;
 
 }

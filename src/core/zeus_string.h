@@ -19,5 +19,8 @@ struct zeus_string_s{
 #define zeus_memcpy(d,s,n) (memcpy(d,s,n))
 
 zeus_char_t *zeus_vsnprintf(zeus_char_t *,zeus_char_t *,const zeus_char_t *,va_list);
+zeus_status_t zeus_string_to_uint(zeus_char_t *,zeus_char_t *,zeus_uint_t *);
+zeus_status_t zeus_string_to_ushort(zeus_char_t *,zeus_char_t *,zeus_ushort_t *);
+zeus_int_t zeus_string_equal(zeus_string_t *,zeus_string_t *);
 
 #endif

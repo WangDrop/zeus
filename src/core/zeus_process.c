@@ -47,7 +47,33 @@ zeus_status_t zeus_init_process(zeus_process_t *process){
         zeus_write_log(process->log,ZEUS_LOG_ERROR,"init process config content error");
         return ZEUS_ERROR;
     }
-    
+
+	if(zeus_config_get_uid(process->config,process->log,&(process->uid)) == ZEUS_ERROR){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"get user id error");
+		return ZEUS_ERROR;
+	}
+
+	if(zeus_config_get_gid(process->config,process->log,&(process->gid)) == ZEUS_ERROR){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"get group id error");
+		return ZEUS_ERROR;
+	}
+
+	if(zeus_config_get_resolution(process->config,process->log,&(process->resolution)) == ZEUS_ERROR){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"get timer resolution error");
+		return ZEUS_ERROR;
+	}
+	
+	if(zeus_config_get_worker(process->config,process->log,&(process->worker)) == ZEUS_ERROR){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"get worker process number error");
+		return ZEUS_ERROR;
+	}
+	
+	if(zeus_config_get_port(process->config,process->log,&(process->port)) == ZEUS_ERROR){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"get port error");
+		return ZEUS_ERROR;
+	}
+
+
     return ZEUS_OK;
 
 }
