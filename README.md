@@ -18,7 +18,7 @@
 
 ##BUILD
 
-*configure
+* configure
 	To generate configuration file , Makefile and some C header files,you can use the shell script configure.
 
 	Change the mode the configure file:
@@ -40,13 +40,13 @@
 				--log-dir=log --pid-dir=pid --conf-dir=conf
 	```
 
-*make
+* make
 
 	```Bash
 	make
 	```
 
-*install
+* install
 
 	If you need create config directory/log directory/pid directory in some parent directory , 
 	and you do not have the privilege , you need to use sudo.
