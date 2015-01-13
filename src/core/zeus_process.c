@@ -31,6 +31,8 @@ zeus_process_t *zeus_create_process(void){
     alloc_process->log = alloc_log;
     alloc_process->config = NULL;
     alloc_process->buffer_pool = NULL;
+	alloc_process->old = NULL;
+	alloc_process->pid_run_flag_path = NULL;
 
     return alloc_process;
 
@@ -73,6 +75,15 @@ zeus_status_t zeus_init_process(zeus_process_t *process){
 		return ZEUS_ERROR;
 	}
 
+	if(zeus_config_get_log_path(process) == ZEUS_ERROR){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"get new log according config error");
+		return ZEUS_ERROR;
+	}
+
+	if(zeus_config_get_pid_path(process) == ZEUS_ERROR){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"set pid flag file error");
+		return ZEUS_ERROR;
+	}
 
     return ZEUS_OK;
 

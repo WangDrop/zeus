@@ -14,5 +14,6 @@
 #define ZEUS_FILE_OPEN_SUCCESS 0
 
 zeus_fd_t zeus_open_file(zeus_string_t *,zeus_int_t,zeus_mode_t);
+zeus_status_t zeus_chown_file(zeus_string_t *,zeus_process_t *);
 
 #endif

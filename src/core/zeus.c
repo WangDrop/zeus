@@ -17,15 +17,13 @@ int main(int argc,char *argv[]){
         exit(-1);
     }
 
-
-	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"uid=%d",process->uid);
-	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"gid=%d",process->gid);
-	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"worker=%d",process->worker);
-	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"resolution=%d",process->resolution);
-	zeus_write_log(process->log,ZEUS_LOG_NOTICE,"port=%hd",process->port);
-
-    //zeus_log_config(process->config,process->log);
-    
+    zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%d",process->uid);
+    zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%d",process->gid);
+    zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%hd",process->port);
+    zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%d",process->worker);
+    zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%d",process->resolution);
+    zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%s",process->log->path->data);
+    zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%s",process->pid_run_flag_path->data);
     
     return 0;
 

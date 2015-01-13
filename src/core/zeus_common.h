@@ -66,4 +66,8 @@ typedef struct zeus_list_data_s  zeus_list_data_t;
 #include "zeus_buffer.h"
 #include "zeus_list.h"
 
+#define ZEUS_DEFAULT_LOG_LEVEL ZEUS_LOG_NOTICE
+#define ZEUS_LOG_FILENAME "zeus.log"
+#define ZEUS_PID_FILENAME "zeus.pid"
+
 #endif

@@ -19,6 +19,9 @@ static zeus_string_t zeus_config_port = {"port",sizeof("port")};
 static zeus_string_t zeus_config_worker = {"worker",sizeof("worker")};
 static zeus_string_t zeus_config_timer = {"timer",sizeof("timer")};
 
+
+static zeus_string_t zeus_log_filename = {"zeus.log",sizeof("zeus.log")};
+
 zeus_config_t *zeus_create_config(zeus_memory_pool_t *pool){
     
     zeus_size_t nwrite;
@@ -321,4 +324,164 @@ zeus_status_t zeus_config_get_port(zeus_config_t *config,zeus_log_t *log,zeus_us
 
 	return ZEUS_OK;
 
+}
+
+zeus_status_t zeus_config_get_log_path(zeus_process_t *process){
+	
+	zeus_log_t *alloc_log;
+
+	zeus_hash_data_t *hd;
+
+	zeus_size_t sz = 0;
+
+	zeus_uint_t sep = 0;
+
+	zeus_char_t *beg;
+	
+	if(zeus_config_check(process->config,process->log,&hd,&zeus_config_log) == ZEUS_ERROR){
+		return ZEUS_ERROR;
+	}
+	
+	if(zeus_string_equal(process->log->path,hd->d) == 0){
+		process->old = NULL;
+		process->log->level = ZEUS_DEFAULT_LOG_LEVEL;
+		return ZEUS_OK;
+	}
+	
+	alloc_log = (zeus_log_t *)zeus_memory_alloc(process->pool,sizeof(zeus_log_t));
+	if(alloc_log == NULL){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log according to config file error");
+		return ZEUS_ERROR;
+	}
+
+	alloc_log->level = ZEUS_DEFAULT_LOG_LEVEL;
+	alloc_log->buf = NULL;
+	alloc_log->inloop = 0;
+	
+	alloc_log->path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
+	if(alloc_log->path == NULL){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log path error");
+		return ZEUS_ERROR;
+	}
+
+	if(hd->d->size <= 1){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"log config size error");
+		return ZEUS_ERROR;
+	}
+
+	sz += (hd->d->size - 1);
+	if(hd->d->data[hd->d->size - 2] == '/'){
+		sep = 1;
+	}else{
+		sep = 0;
+		sz += 1;
+	}
+
+	sz += zeus_strlen(ZEUS_LOG_FILENAME);
+	sz += 1;
+
+	alloc_log->path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * sz);
+	if(alloc_log == NULL){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log path error");
+		return ZEUS_ERROR;
+	}
+
+	alloc_log->path->size = sz;
+	
+	beg = alloc_log->path->data;
+
+	zeus_memcpy(beg,hd->d->data,hd->d->size - 1);
+
+	beg += hd->d->size - 1;
+
+	if(sep == 0){
+		*beg++ = '/';
+	}
+
+	zeus_memcpy(beg,ZEUS_LOG_FILENAME,zeus_strlen(ZEUS_LOG_FILENAME));
+
+	beg += zeus_strlen(ZEUS_LOG_FILENAME);
+
+	*beg ++ = '\0';
+
+	if((alloc_log->fd = zeus_open_file(alloc_log->path,O_CREAT | O_RDWR | O_APPEND ,\
+					S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) == ZEUS_FILE_OPEN_ERROR){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log file %s error : %s",
+				alloc_log->path->data,strerror(errno));
+		return ZEUS_ERROR;
+	}
+	
+	if(zeus_chown_file(alloc_log->path,process) == ZEUS_ERROR){
+		return ZEUS_ERROR;
+	}
+
+	alloc_log->status = ZEUS_LOG_OPEN;
+	
+	process->old = process->log;
+
+	process->log = alloc_log;
+
+	return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_config_get_pid_path(zeus_process_t *process){
+	
+	zeus_hash_data_t *hd;
+
+	zeus_char_t *beg;
+
+	zeus_size_t sz = 0;
+
+	zeus_uint_t sep = 0;
+
+	if(zeus_config_check(process->config,process->log,&hd,&zeus_config_pid) == ZEUS_ERROR){
+		return ZEUS_ERROR;
+	}
+
+	process->pid_run_flag_path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
+	if(process->pid_run_flag_path == NULL){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create pid file string structure error");
+		return ZEUS_ERROR;
+	}
+
+	if(hd->d->size <= 1){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"pid file configuration error");
+		return ZEUS_ERROR;
+	}
+
+	sz += (hd->d->size - 1);
+
+	if(hd->d->data[hd->d->size - 2] == '/'){
+		sep = 1;
+	}else{
+		sep = 0;
+		sz += 1;
+	}
+
+	sz += zeus_strlen(ZEUS_PID_FILENAME);
+	sz += 1;
+
+
+	process->pid_run_flag_path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * sz);
+	
+	beg = process->pid_run_flag_path->data;
+
+	zeus_memcpy(beg,hd->d->data,hd->d->size - 1);
+
+	beg += (hd->d->size - 1);
+
+	if(sep == 0){
+		*beg++ = '/';
+	}
+
+	zeus_memcpy(beg,ZEUS_PID_FILENAME,zeus_strlen(ZEUS_PID_FILENAME));
+
+	beg += zeus_strlen(ZEUS_PID_FILENAME);
+
+	*beg++ = '\0';
+
+	process->pid_run_flag_path = hd->d;
+
+	return ZEUS_OK;
 }

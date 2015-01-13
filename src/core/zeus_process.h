@@ -20,8 +20,10 @@ struct zeus_process_s{
 
     zeus_list_data_t *buffer_pool; //object pool
 
+	zeus_log_t *old; // old log
 
-
+	
+	
 	zeus_uid_t uid; //user id
 
 	zeus_gid_t gid; //group id
@@ -31,6 +33,8 @@ struct zeus_process_s{
 	zeus_port_t port; //port
 
 	zeus_uint_t worker; //worker process count
+	
+	zeus_string_t *pid_run_flag_path; //pid file path
 
 	
 };

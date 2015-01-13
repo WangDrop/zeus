@@ -34,6 +34,7 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
     }
 
     alloc->level = level;
+	alloc->inloop = 0;
 
     alloc->path = (zeus_string_t *)malloc(sizeof(zeus_string_t));
     if(alloc->path == NULL){
@@ -41,7 +42,7 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
         free(alloc);
         return NULL;
     }
-       
+   
     if(path == NULL){
         alloc->path->data = (zeus_char_t *)malloc(sizeof("/dev/stderr"));
         if(alloc->path->data == NULL){
@@ -78,6 +79,7 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
 
     return alloc;
 }
+
 
 zeus_log_res_t zeus_write_log_to_stderr(zeus_log_level_t level,const zeus_char_t *fmt,...){
     
