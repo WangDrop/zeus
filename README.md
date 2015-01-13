@@ -1,4 +1,8 @@
 
+zeus
+======
+
+
 	###############	 #			    #	##############	  ###########
 	             #   #              #   #				 #  		 #
 				#    #				#   #				#             #
@@ -19,6 +23,7 @@
 ## BUILD
 
 * configure
+
 	To generate configuration file , Makefile and some C header files,you can use the shell script configure.
 
 	Change the mode the configure file:
@@ -48,12 +53,15 @@
 
 * install
 
+
 	If you need create config directory/log directory/pid directory in some parent directory , 
 	and you do not have the privilege , you need to use sudo.
+
 
 	```Bash
 	sudo make install
 	```
+
 
 
 ## RUN
@@ -61,6 +69,9 @@
 	The master process's user:group is user:user.
 	The worker process's user:group is username:groupname according the config file.
 
+
 	```Bash
 	sudo ./zeus
 	```
+
+
