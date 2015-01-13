@@ -16,7 +16,7 @@
 	###############     ##########		##############     ##########
 
 
-##BUILD
+## BUILD
 
 * configure
 	To generate configuration file , Makefile and some C header files,you can use the shell script configure.
@@ -56,11 +56,11 @@
 	```
 
 
-##RUN
+## RUN
 
 	The master process's user:group is user:user.
 	The worker process's user:group is username:groupname according the config file.
 
-	```
+	```Bash
 	sudo ./zeus
 	```
