@@ -69,6 +69,9 @@ zeus
 	The master process's user:group is user:user.
 	The worker process's user:group is username:groupname according the config file.
 	
+* How To
+
+
 	```Bash
 	sudo ./zeus
 	```
