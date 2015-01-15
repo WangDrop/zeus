@@ -37,6 +37,8 @@ typedef uid_t zeus_uid_t;
 typedef gid_t zeus_gid_t;
 typedef uint16_t zeus_port_t;
 typedef uint16_t zeus_ushort_t;
+typedef pid_t zeus_pid_t;
+typedef int zeus_idx_t;
 
 #define ZEUS_OK 0x0
 #define ZEUS_ERROR 0x1
@@ -52,6 +54,10 @@ typedef struct zeus_config_s zeus_config_t;
 typedef struct zeus_buffer_s zeus_buffer_t;
 typedef struct zeus_list_s zeus_list_t;
 typedef struct zeus_list_data_s  zeus_list_data_t;
+typedef struct zeus_connection_s zeus_connection_t;
+
+typedef struct zeus_event_s zeus_event_t;
+
 
 #include "../../build_/zeus_build.h"
 
@@ -65,6 +71,9 @@ typedef struct zeus_list_data_s  zeus_list_data_t;
 #include "zeus_config.h"
 #include "zeus_buffer.h"
 #include "zeus_list.h"
+#include "zeus_connection.h"
+
+#include "../event/zeus_event.h"
 
 #define ZEUS_DEFAULT_LOG_LEVEL ZEUS_LOG_NOTICE
 #define ZEUS_LOG_FILENAME "zeus.log"

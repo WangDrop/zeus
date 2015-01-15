@@ -10,6 +10,10 @@
 
 #include "zeus_common.h"
 
+
+#define ZEUS_MASTER_PROCESS_INDEX -1
+#define ZEUS_GATEWAY_PROCESS_INDEX 0
+
 struct zeus_process_s{
     
     zeus_memory_pool_t *pool; //memory pool
@@ -35,6 +39,16 @@ struct zeus_process_s{
 	zeus_uint_t worker; //worker process count
 	
 	zeus_string_t *pid_run_flag_path; //pid file path
+
+
+
+	zeus_pid_t pid; // process id;
+
+	zeus_idx_t pidx; // process idx , -1 means master , 0 means gateway
+
+	zeus_connection_t *listenfd; // listen
+
+	zeus_connection_t *channel; // channel to connection master/gateway/worker process
 
 	
 };
