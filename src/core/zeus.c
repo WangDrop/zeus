@@ -13,9 +13,15 @@ int main(int argc,char *argv[]){
         exit(-1);
     }
 
-    if(zeus_init_process(process) == ZEUS_ERROR){
+	if(zeus_record_command_and_env(process,argc,argv) == ZEUS_ERROR){
+		exit(-1);
+	}
+    
+	if(zeus_init_process(process) == ZEUS_ERROR){
         exit(-1);
     }
+	
+
 /*
     zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%d",process->uid);
     zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%d",process->gid);

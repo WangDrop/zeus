@@ -51,11 +51,27 @@ struct zeus_process_s{
 	zeus_connection_t *channel; // channel to connection master/gateway/worker process
 
 	
+
+	zeus_size_t arg_sz;
+	
+	zeus_char_t **arg;  
+
+	zeus_int_t record_argc;
+
+	zeus_char_t **record_argv;
+
+	zeus_int_t record_envc;
+
+	zeus_char_t **record_environ;
+
+	
 };
 
 
 zeus_process_t *zeus_create_process(void);
 zeus_status_t zeus_init_process(zeus_process_t *);
+zeus_status_t zeus_record_command_and_env(zeus_process_t *,zeus_int_t,zeus_char_t **);
+zeus_status_t zeus_update_process_flag(zeus_process_t *);
 
 
 #endif

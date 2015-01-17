@@ -79,4 +79,6 @@ typedef struct zeus_event_s zeus_event_t;
 #define ZEUS_LOG_FILENAME "zeus.log"
 #define ZEUS_PID_FILENAME "zeus.pid"
 
+extern char **environ;
+
 #endif
