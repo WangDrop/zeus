@@ -40,6 +40,8 @@ struct zeus_process_s{
 	
 	zeus_string_t *pid_run_flag_path; //pid file path
 
+	zeus_fd_t pid_run_flag_fd; //pid file fd
+
 
 
 	zeus_pid_t pid; // process id;

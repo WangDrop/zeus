@@ -10,4 +10,14 @@
 #include "zeus_common.h"
 
 
+#define ZEUS_PID_MAX_SIZE 16
+
+zeus_status_t zeus_check_already_run(zeus_process_t *);
+
+zeus_status_t zeus_init_daemon(zeus_process_t *);
+
+zeus_status_t zeus_daemon(zeus_process_t *);
+
+zeus_status_t zeus_check_daemon_already_run(zeus_process_t *);
+
 #endif

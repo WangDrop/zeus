@@ -481,7 +481,5 @@ zeus_status_t zeus_config_get_pid_path(zeus_process_t *process){
 
 	*beg++ = '\0';
 
-	process->pid_run_flag_path = hd->d;
-
 	return ZEUS_OK;
 }

@@ -55,6 +55,7 @@ typedef struct zeus_buffer_s zeus_buffer_t;
 typedef struct zeus_list_s zeus_list_t;
 typedef struct zeus_list_data_s  zeus_list_data_t;
 typedef struct zeus_connection_s zeus_connection_t;
+typedef struct zeus_signal_s zeus_signal_t;
 
 typedef struct zeus_event_s zeus_event_t;
 
@@ -72,6 +73,7 @@ typedef struct zeus_event_s zeus_event_t;
 #include "zeus_buffer.h"
 #include "zeus_list.h"
 #include "zeus_connection.h"
+#include "zeus_signal.h"
 
 #include "../event/zeus_event.h"
 
