@@ -21,6 +21,8 @@
 #include <stdarg.h>
 #include <inttypes.h>
 #include <pwd.h>
+#include <sys/resource.h>
+#include <sys/socket.h>
 
 typedef unsigned long zeus_ulong_t;
 typedef unsigned char zeus_uchar_t;

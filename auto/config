@@ -81,6 +81,10 @@ echo "# Timer Resolution"
 echo "timer=$ZEUS_RESOLUTION"
 echo
 
+echo "# Max Connection"
+echo "connection=$ZEUS_MAX_CONNECTION"
+echo 
+
 exec 1>&6
 exec 6>&-
 

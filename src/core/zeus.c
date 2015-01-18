@@ -29,6 +29,12 @@ int main(int argc,char *argv[]){
 		exit(-1);
 	}
 
+	if(zeus_prepare_spawn(process) == ZEUS_ERROR){
+		exit(-1);
+	}
+
+	sleep(50);
+
     return 0;
 
 }
@@ -137,6 +143,8 @@ zeus_status_t zeus_daemon(zeus_process_t *p){
 	zeus_fd_t fd;
 	zeus_pid_t pid;
 
+	struct rlimit rl;
+
 	switch((pid = fork())){
 		case -1:
 			zeus_write_log(p->log,ZEUS_LOG_ERROR,"create child process error : %s",strerror(errno));
@@ -165,6 +173,15 @@ zeus_status_t zeus_daemon(zeus_process_t *p){
 			exit(0);
 			break;
 	}
+	
+	rl.rlim_cur = p->max_connection;
+	rl.rlim_max = p->max_connection;
+
+	if(setrlimit(RLIMIT_NOFILE,&rl) == -1){
+		zeus_write_log(p->log,ZEUS_LOG_ERROR,"change max connection error : %s",strerror(errno));
+		return ZEUS_ERROR;
+	}
+
 	
 	if(close(STDIN_FILENO) == -1){
 		zeus_write_log(p->log,ZEUS_LOG_ERROR,"close STDIN_FILENO error : %s",strerror(errno));
@@ -212,6 +229,53 @@ zeus_status_t zeus_daemon(zeus_process_t *p){
 		return ZEUS_ERROR;
 	}
 		
+	return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_prepare_spawn(zeus_process_t *p){
+
+	zeus_size_t idx = 0;
+
+	p->channel = (int **)zeus_memory_alloc(p->pool,sizeof(int *) * (p->worker + 1));
+
+	if(p->channel == NULL){
+		zeus_write_log(p->log,ZEUS_LOG_ERROR,"create channel error");
+		return ZEUS_ERROR;
+	}
+
+	for(idx = 0 ; idx < (p->worker + 1) ; ++ idx){
+		
+		p->channel[idx] = (int *)zeus_memory_alloc(p->pool,sizeof(int) * 2);
+		if(p->channel[idx] == NULL){
+			zeus_write_log(p->log,ZEUS_LOG_ERROR,"create channel element error : %d",idx);
+			return ZEUS_ERROR;
+		}
+
+	}
+
+	for(idx = 0 ; idx < (p->worker + 1) ; ++ idx){
+		if(socketpair(AF_UNIX,SOCK_STREAM,0,p->channel[idx]) == -1){
+			zeus_write_log(p->log,ZEUS_LOG_ERROR,"create channel error when call socketpair : %s",strerror(errno));
+			return ZEUS_ERROR;
+		}
+	}
+
+	for(idx = 0 ; idx < (p->worker + 1) ; ++ idx){
+
+		if(fcntl(p->channel[idx][0],F_SETFL,O_NONBLOCK) == -1){
+			zeus_write_log(p->log,ZEUS_LOG_ERROR,"set nonblocking channel %d:0 error : %s",strerror(errno));
+			return ZEUS_ERROR;
+		}
+	
+		if(fcntl(p->channel[idx][1],F_SETFL,O_NONBLOCK) == -1){
+			zeus_write_log(p->log,ZEUS_LOG_ERROR,"set nonblocking channel %d:1 error : %s",strerror(errno));
+			return ZEUS_ERROR;
+		}
+
+	}
+
+
 	return ZEUS_OK;
 
 }

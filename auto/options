@@ -30,6 +30,10 @@ ZEUS_CONFIG_DIR=
 
 ZEUS_RESOLUTION=50
 
+# max connection
+
+ZEUS_MAX_CONNECTION=1024
+
 # current dirname
 
 ZEUS_PREFIX=$(pwd)
@@ -49,16 +53,17 @@ usage(){
     
     echo "Usage : ./configuration [options] "   1>&2
     cat<<EOF
-        --help                  help information
-        --version               version information
-        --user=username         user configuration
-        --group=groupname       group configuration
-        --worker=n              worker process configuration
-        --port=m                port configuration
-        --resolution=t          time resolution configuration
-        --log-dir=log           log file configuration
-        --pid-dir=pid           pid file configuration
-        --conf-dir=conf         config file 
+	--help                  help information
+	--version               version information
+	--user=username         user configuration
+	--group=groupname       group configuration
+	--worker=n              worker process configuration
+	--port=m                port configuration
+	--resolution=t          time resolution configuration
+	--log-dir=log           log file configuration
+	--pid-dir=pid           pid file configuration
+	--conf-dir=conf         config file 
+	--max-connection=mc 	max connection
 EOF
     return 1
 
@@ -115,6 +120,9 @@ do
         --conf-dir=*)
             ZEUS_CONFIG_DIR=$value_
             ;;
+		--max-connection=*)
+			ZEUS_MAX_CONNECTION=$value_
+			;;
         *)
             echo "Unknown option : $options"
             echo "Please use ./configure --help to check"
@@ -186,6 +194,15 @@ then
     exit 1
 else
     echo "success !"
+fi
+
+echo -n "check max connection $ZEUS_MAX_CONNECTION ... "
+if [ $ZEUS_MAX_CONNECTION -lt 1 ]
+then
+	echo "error , max connection must be greater than 1 !"
+	exit 1
+else
+	echo "success !"
 fi
 
 

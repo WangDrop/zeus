@@ -20,4 +20,6 @@ zeus_status_t zeus_daemon(zeus_process_t *);
 
 zeus_status_t zeus_check_daemon_already_run(zeus_process_t *);
 
+zeus_status_t zeus_prepare_spawn(zeus_process_t *);
+
 #endif

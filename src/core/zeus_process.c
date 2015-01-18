@@ -47,6 +47,8 @@ zeus_process_t *zeus_create_process(void){
 
 	alloc_process->arg = NULL;
 
+	alloc_process->channel = NULL;
+
     return alloc_process;
 
 }
@@ -82,7 +84,12 @@ zeus_status_t zeus_init_process(zeus_process_t *process){
 		zeus_write_log(process->log,ZEUS_LOG_ERROR,"get worker process number error");
 		return ZEUS_ERROR;
 	}
-	
+
+	if(zeus_config_get_max_connection(process->config,process->log,&(process->max_connection)) == ZEUS_ERROR){
+		zeus_write_log(process->log,ZEUS_LOG_ERROR,"get max connection error");
+		return ZEUS_ERROR;
+	}
+
 	if(zeus_config_get_port(process->config,process->log,&(process->port)) == ZEUS_ERROR){
 		zeus_write_log(process->log,ZEUS_LOG_ERROR,"get port error");
 		return ZEUS_ERROR;

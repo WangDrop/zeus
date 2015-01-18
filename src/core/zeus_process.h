@@ -42,15 +42,15 @@ struct zeus_process_s{
 
 	zeus_fd_t pid_run_flag_fd; //pid file fd
 
+	zeus_uint_t max_connection; // max connection
+
 
 
 	zeus_pid_t pid; // process id;
 
 	zeus_idx_t pidx; // process idx , -1 means master , 0 means gateway
 
-	zeus_connection_t *listenfd; // listen
-
-	zeus_connection_t *channel; // channel to connection master/gateway/worker process
+	zeus_int_t **channel; // channel to connection gateway/worker process ,0 for gateway , 1- for worker
 
 	
 

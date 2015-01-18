@@ -31,6 +31,7 @@ zeus_status_t zeus_config_get_gid(zeus_config_t *,zeus_log_t *,zeus_gid_t *);
 zeus_status_t zeus_config_get_resolution(zeus_config_t *,zeus_log_t *,zeus_uint_t *);
 zeus_status_t zeus_config_get_worker(zeus_config_t *,zeus_log_t *,zeus_uint_t *);
 zeus_status_t zeus_config_get_port(zeus_config_t *,zeus_log_t *,zeus_ushort_t *);
+zeus_status_t zeus_config_get_max_connection(zeus_config_t *,zeus_log_t *,zeus_uint_t *);
 
 zeus_status_t zeus_config_get_log_path(zeus_process_t *);
 zeus_status_t zeus_config_get_pid_path(zeus_process_t *);

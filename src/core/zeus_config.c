@@ -18,7 +18,7 @@ static zeus_string_t zeus_config_pid = {"pid",sizeof("pid")};
 static zeus_string_t zeus_config_port = {"port",sizeof("port")};
 static zeus_string_t zeus_config_worker = {"worker",sizeof("worker")};
 static zeus_string_t zeus_config_timer = {"timer",sizeof("timer")};
-
+static zeus_string_t zeus_config_max_connection = {"connection",sizeof("connection")};
 
 static zeus_string_t zeus_log_filename = {"zeus.log",sizeof("zeus.log")};
 
@@ -304,6 +304,28 @@ zeus_status_t zeus_config_get_worker(zeus_config_t *config,zeus_log_t *log,zeus_
 
 }
 
+zeus_status_t zeus_config_get_max_connection(zeus_config_t *config,zeus_log_t *log,zeus_uint_t *connection){
+	
+	zeus_hash_data_t *hd;
+	zeus_char_t *beg;
+	zeus_char_t *end;
+	
+	if(zeus_config_check(config,log,&hd,&zeus_config_max_connection) == ZEUS_ERROR){
+		return ZEUS_ERROR;
+	}
+
+	beg = hd->d->data;
+	end = hd->d->data + hd->d->size - 1;
+
+	if(zeus_string_to_uint(beg,end,connection) == ZEUS_ERROR){
+		zeus_write_log(log,ZEUS_LOG_ERROR,"get max connection error");
+		return ZEUS_ERROR;
+	}
+
+	return ZEUS_OK;
+
+}
+
 zeus_status_t zeus_config_get_port(zeus_config_t *config,zeus_log_t *log,zeus_ushort_t *val){
 
 	zeus_hash_data_t *hd;
@@ -325,6 +347,8 @@ zeus_status_t zeus_config_get_port(zeus_config_t *config,zeus_log_t *log,zeus_us
 	return ZEUS_OK;
 
 }
+
+
 
 zeus_status_t zeus_config_get_log_path(zeus_process_t *process){
 	
