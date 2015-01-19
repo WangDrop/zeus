@@ -5,7 +5,7 @@
 
 #include "zeus.h"
 
-volatile zeus_process_t *process;
+zeus_process_t *process;
 volatile zeus_atomic_t zeus_quit;
 volatile zeus_atomic_t zeus_refork;
 volatile zeus_atomic_t zeus_segv;

@@ -87,8 +87,5 @@ typedef struct zeus_event_s zeus_event_t;
 #define ZEUS_PID_FILENAME "zeus.pid"
 
 extern char **environ;
-extern volatile zeus_atomic_t zeus_quit;
-extern volatile zeus_atomic_t zeus_refork;
-extern volatile zeus_atomic_t zeus_segv;
 
 #endif

@@ -8,10 +8,12 @@
 #ifndef __ZEUS_PROCESS_H_H_H__
 #define __ZEUS_PROCESS_H_H_H__
 
+
 #include "zeus_common.h"
 
 
 #define ZEUS_MASTER_PROCESS_INDEX -1
+
 #define ZEUS_GATEWAY_PROCESS_INDEX 0
 
 struct zeus_process_s{
@@ -69,15 +71,20 @@ struct zeus_process_s{
 
     zeus_char_t **record_environ;
 	
-
     volatile zeus_atomic_t quit;
 
 };
 
+extern volatile zeus_atomic_t zeus_quit;
+extern volatile zeus_atomic_t zeus_refork;
+extern volatile zeus_atomic_t zeus_segv;
 
 zeus_process_t *zeus_create_process(void);
+
 zeus_status_t zeus_init_process(zeus_process_t *);
+
 zeus_status_t zeus_record_command_and_env(zeus_process_t *,zeus_int_t,zeus_char_t **);
+
 zeus_status_t zeus_update_process_flag(zeus_process_t *);
 
 
