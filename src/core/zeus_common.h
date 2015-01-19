@@ -23,6 +23,8 @@
 #include <pwd.h>
 #include <sys/resource.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 typedef unsigned long zeus_ulong_t;
 typedef unsigned char zeus_uchar_t;
@@ -41,6 +43,7 @@ typedef uint16_t zeus_port_t;
 typedef uint16_t zeus_ushort_t;
 typedef pid_t zeus_pid_t;
 typedef int zeus_idx_t;
+typedef sig_atomic_t zeus_atomic_t;
 
 #define ZEUS_OK 0x0
 #define ZEUS_ERROR 0x1
@@ -84,5 +87,8 @@ typedef struct zeus_event_s zeus_event_t;
 #define ZEUS_PID_FILENAME "zeus.pid"
 
 extern char **environ;
+extern volatile zeus_atomic_t zeus_quit;
+extern volatile zeus_atomic_t zeus_refork;
+extern volatile zeus_atomic_t zeus_segv;
 
 #endif

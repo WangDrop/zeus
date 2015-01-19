@@ -11,16 +11,16 @@ void zeus_master_signal_handler(int signo){
 
 	switch(signo){
 		case SIGINT:
-			break;
 		case SIGQUIT:
-			break;
 		case SIGTERM:
-			break;
 		case SIGHUP:
+			zeus_quit = 1;
 			break;
 		case SIGCHLD:
+			zeus_refork = 1;
 			break;
 		case SIGSEGV:
+			zeus_segv = 1;
 			break;
 		default:
 			break;

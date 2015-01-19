@@ -50,9 +50,12 @@ struct zeus_process_s{
 
 	zeus_idx_t pidx; // process idx , -1 means master , 0 means gateway
 
-	zeus_int_t **channel; // channel to connection gateway/worker process ,0 for gateway , 1- for worker
+	zeus_fd_t listenfd; // listen fd
 
+	zeus_int_t **channel; // channel to connection gateway/worker process ,0 for gateway , 1- for worker
 	
+	zeus_pid_t *child;	// record gateway/worker pids
+
 
 	zeus_size_t arg_sz;
 	
@@ -65,8 +68,10 @@ struct zeus_process_s{
 	zeus_int_t record_envc;
 
 	zeus_char_t **record_environ;
-
 	
+
+	volatile zeus_atomic_t quit;
+
 };
 
 

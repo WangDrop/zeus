@@ -5,7 +5,10 @@
 
 #include "zeus.h"
 
-zeus_process_t *process;
+volatile zeus_process_t *process;
+volatile zeus_atomic_t zeus_quit;
+volatile zeus_atomic_t zeus_refork;
+volatile zeus_atomic_t zeus_segv;
 
 int main(int argc,char *argv[]){
     
@@ -33,7 +36,7 @@ int main(int argc,char *argv[]){
 		exit(-1);
 	}
 
-	sleep(50);
+	zeus_spawn(process);
 
     return 0;
 
@@ -275,6 +278,152 @@ zeus_status_t zeus_prepare_spawn(zeus_process_t *p){
 
 	}
 
+	p->child = (zeus_pid_t *)zeus_memory_alloc(p->pool,sizeof(zeus_pid_t) * (p->worker + 1));
+	if(p->child == NULL){
+		zeus_write_log(p->log,ZEUS_LOG_ERROR,"alloc children process pid memory space error");
+		return ZEUS_ERROR;
+	}
+	
+	for(idx = 0 ; idx < (p->worker + 1) ; ++ idx){
+		p->child[idx] = 0;
+	}
+
+	return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_spawn(zeus_process_t *p){
+	
+	zeus_size_t idx;
+
+	zeus_pid_t pid;
+
+	// create gateway process;
+	
+	switch(pid = fork()){
+		case -1:
+			zeus_write_log(p->log,ZEUS_LOG_ERROR,"create gateway process error");
+			return ZEUS_ERROR;
+			break;
+		case 0:
+			zeus_prepare_loop(p,0);
+			break;
+		default:
+			p->child[0] = pid;
+			break;
+	}
+
+
+	for(idx = 0 ; idx < p->worker ; ++ idx){
+	
+		switch(pid = fork()){
+			case -1:
+				zeus_write_log(p->log,ZEUS_LOG_ERROR,"create worker process error");
+				return ZEUS_ERROR;
+				break;
+			case 0:
+				zeus_prepare_loop(p,idx + 1);
+				break;
+			default:
+				p->child[idx + 1] = pid;
+				break;
+		}
+	
+	}
+
+	zeus_master_prepare_loop(p);
+		
+	return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_master_prepare_loop(zeus_process_t *p){
+	
+	zeus_size_t i;
+
+	for(i = 0 ; i < p->worker + 1 ; ++ i){
+		if(close(p->channel[i][0]) == -1){
+			zeus_write_log(p->log,ZEUS_LOG_ERROR,"close read channel errro : %s",strerror(errno));
+		}
+		if(close(p->channel[i][1]) == -1){
+			zeus_write_log(p->log,ZEUS_LOG_ERROR,"close write channel error : %s",strerror(errno));
+		}
+	}
+
+
+	zeus_master_event_loop(p);
+
+}
+
+zeus_status_t zeus_prepare_loop(zeus_process_t *p,zeus_idx_t idx){
+	
+	zeus_size_t i;
+
+	p->pid = getpid();
+	p->pidx = idx;
+	p->child = NULL;
+	
+	for(i = 0 ; i < p->worker + 1 ; ++ i){
+		if(i == p->pidx){
+			if(close(p->channel[i][1]) == -1){
+				zeus_write_log(p->log,ZEUS_LOG_ERROR,"close own write channel error : %s",strerror(errno));
+			}
+		}else{
+			if(close(p->channel[i][0]) == -1){
+				zeus_write_log(p->log,ZEUS_LOG_ERROR,"close other read channel error : %s",strerror(errno));
+			}
+		}
+	}
+
+	if(p->pidx == 0){
+		if(zeus_gateway_prepare_listen(p) == ZEUS_ERROR){
+			zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process prepare listen error");
+		}
+	}
+	
+	if(zeus_update_process_flag(p) == ZEUS_ERROR){
+		zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s : change process flag error",(p->pidx)?"gateway":"worker");
+	}
+
+	zeus_event_loop(p);
+
+}
+
+
+zeus_status_t zeus_gateway_prepare_listen(zeus_process_t *p){
+	
+	int reuse_flag = 1;
+
+	struct sockaddr_in addr;
+
+	if((p->listenfd = socket(AF_INET,SOCK_STREAM,0)) == -1){
+		zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway create listen file descriptor error : %s",strerror(errno));
+		return ZEUS_ERROR;
+	}
+
+	if(setsockopt(p->listenfd,SOL_SOCKET,SO_REUSEADDR,(const void *)&reuse_flag,sizeof(reuse_flag)) == -1){
+		zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway set reuse address error : %s",strerror(errno));
+		return ZEUS_ERROR;
+	}
+
+	if(fcntl(p->listenfd,F_SETFL,O_NONBLOCK) == -1){
+		zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway set listen fd nonblock error : %s",strerror(errno));
+		return ZEUS_ERROR;
+	}
+	
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(p->port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if(bind(p->listenfd,(struct sockaddr *)&addr,sizeof(addr)) == -1){
+		zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway bind error : %s",strerror(errno));
+		return ZEUS_ERROR;
+	}
+
+	if(listen(p->listenfd,SOMAXCONN) == -1){
+		zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway listen error : %s",strerror(errno));
+		return ZEUS_ERROR;
+	}
 
 	return ZEUS_OK;
 

@@ -19,7 +19,7 @@ struct zeus_connection_s{
 };
 
 
-
+zeus_connection_t *zeus_create_connection_node(zeus_process_t *);
 
 
 #endif

@@ -25,7 +25,8 @@ struct zeus_signal_s{
 static zeus_signal_t zeus_master_ignore_signal[] = 	\
 			  {										\
 			  	{SIGTTIN,"SIGTTIN"},				\
-				{SIGTTOU,"SIGTTOU"} 				\
+				{SIGTTOU,"SIGTTOU"},				\
+				{SIGPIPE,"SIGPIPE"}					\
 			  };
 
 static zeus_signal_t zeus_master_catch_signal[] = 	\

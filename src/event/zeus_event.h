@@ -18,4 +18,7 @@ struct zeus_event_s{
 
 };
 
+zeus_status_t zeus_master_event_loop(zeus_process_t *);
+zeus_status_t zeus_event_loop(zeus_process_t *);
+
 #endif
