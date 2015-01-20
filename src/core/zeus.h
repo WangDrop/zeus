@@ -30,4 +30,8 @@ zeus_status_t zeus_prepare_loop(zeus_process_t *,zeus_idx_t);
 
 zeus_status_t zeus_gateway_prepare_listen(zeus_process_t *);
 
+zeus_status_t zeus_respawn(zeus_process_t *);
+
+zeus_status_t zeus_inform_exit(zeus_process_t *);
+
 #endif

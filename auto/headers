@@ -160,6 +160,7 @@ LIB_CHECK_FILE="$LIB_CHECK_FILE sys/resource"
 LIB_CHECK_FILE="$LIB_CHECK_FILE sys/socket"
 LIB_CHECK_FILE="$LIB_CHECK_FILE netinet/in"
 LIB_CHECK_FILE="$LIB_CHECK_FILE arpa/inet"
+LIB_CHECK_FILE="$LIB_CHECK_FILE sys/wait"
 
 for libfile in $LIB_CHECK_FILE
 do
