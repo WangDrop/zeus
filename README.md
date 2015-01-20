@@ -42,7 +42,7 @@ zeus
 
 	```Bash
 	./configure --user=username --group=groupname --worker=n --port=m --resolution=t  \
-				--log-dir=log --pid-dir=pid --conf-dir=conf
+				--log-dir=log --pid-dir=pid --conf-dir=conf --max-connection=mc
 	```
 
 * make
