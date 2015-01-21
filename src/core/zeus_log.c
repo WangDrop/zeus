@@ -34,7 +34,6 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
     }
 
     alloc->level = level;
-	alloc->inloop = 0;
 
     alloc->path = (zeus_string_t *)malloc(sizeof(zeus_string_t));
     if(alloc->path == NULL){
@@ -75,7 +74,6 @@ zeus_log_t *zeus_create_log(zeus_string_t *path,zeus_log_level_t level){
     }
 
     alloc->status = ZEUS_LOG_OPEN;
-    alloc->buf = NULL;
 
     return alloc;
 }
@@ -126,7 +124,7 @@ zeus_log_res_t zeus_write_log(zeus_log_t *log,zeus_log_level_t level,const zeus_
     if(level < log->level){
         return ZEUS_LOG_IGNO;
     }
-    
+
     beg = zeus_log_time(beg,end);
     if(beg == end){
         zeus_log_newline(*beg++);

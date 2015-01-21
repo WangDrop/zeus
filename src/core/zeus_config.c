@@ -379,8 +379,6 @@ zeus_status_t zeus_config_get_log_path(zeus_process_t *process){
 	}
 
 	alloc_log->level = ZEUS_DEFAULT_LOG_LEVEL;
-	alloc_log->buf = NULL;
-	alloc_log->inloop = 0;
 	
 	alloc_log->path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
 	if(alloc_log->path == NULL){

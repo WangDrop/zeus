@@ -38,16 +38,11 @@ struct zeus_log_s{
     
     zeus_string_t *path;
 
-    zeus_list_t *buf;
-
-	zeus_uint_t inloop;
-
 };
 
 zeus_log_t *zeus_create_log(zeus_string_t *,zeus_log_level_t );
 zeus_log_res_t zeus_write_log(zeus_log_t *,zeus_log_level_t,const zeus_char_t *,...);
 zeus_log_res_t zeus_write_log_to_stderr(zeus_log_level_t,const zeus_char_t *,...);
-zeus_log_res_t zeus_write_log_in_loop(zeus_log_t *,zeus_log_level_t,const zeus_char_t *,...);
 
 
 
