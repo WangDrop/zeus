@@ -18,30 +18,31 @@
 
 struct zeus_process_s{
     
-    zeus_memory_pool_t *pool; //memory pool
-    zeus_log_t *log; //log
-    zeus_config_t *config; //config
-    zeus_list_data_t *buffer_pool; //object pool
-    zeus_log_t *old; // old log
+    zeus_memory_pool_t *pool;
+    zeus_log_t *log;
+    zeus_config_t *config;
+    zeus_list_data_t *buffer_pool;
+    zeus_log_t *old;
 
 	
 	
-    zeus_uid_t uid; //user id
-    zeus_gid_t gid; //group id
-    zeus_uint_t resolution; //time resolution
-    zeus_port_t port; //port
-    zeus_uint_t worker; //worker process count
-    zeus_string_t *pid_run_flag_path; //pid file path
-    zeus_fd_t pid_run_flag_fd; //pid file fd
-    zeus_uint_t max_connection; // max connection
+    zeus_uid_t uid;
+    zeus_gid_t gid;
+    zeus_uint_t resolution;
+    zeus_port_t port;
+    zeus_uint_t worker;
+    zeus_string_t *pid_run_flag_path;
+    zeus_fd_t pid_run_flag_fd;
+    zeus_uint_t max_connection;
 
 
 
-    zeus_pid_t pid; // process id;
-    zeus_idx_t pidx; // process idx , -1 means master , 0 means gateway
-    zeus_fd_t listenfd; // listen fd
-    zeus_int_t **channel; // channel to connection gateway/worker process ,0 for gateway , 1- for worker
-    volatile zeus_pid_t *child;	// record gateway/worker pids
+    zeus_pid_t pid;
+    /* -1 means master , 0 means gateway*/
+    zeus_idx_t pidx;
+    zeus_fd_t listenfd;
+    zeus_int_t **channel;
+    volatile zeus_pid_t *child;
 
 
     zeus_size_t arg_sz;
