@@ -372,6 +372,11 @@ zeus_status_t zeus_prepare_loop(zeus_process_t *p,zeus_idx_t idx){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process set effective user id error : %s",\
                       (p->pidx)?"worker":"gateway",strerror(errno));
     }
+    
+    if(zeus_config_gateworker_log_path(p) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process re-init log error" , \
+                      (p->pidx)?"worker":"gateway",strerror(errno));
+    }
 
 	
     if(!zeus_refork){

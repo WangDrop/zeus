@@ -23,6 +23,7 @@ struct zeus_process_s{
     zeus_config_t *config;
     zeus_list_data_t *buffer_pool;
     zeus_log_t *old;
+    zeus_log_t *save;
 
 	
 	

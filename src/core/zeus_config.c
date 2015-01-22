@@ -9,6 +9,7 @@
 
 #define ZEUS_CONFIG_PATH_MAX 4096
 #define ZEUS_CONFIG_LINE_MAX 2048
+#define ZEUS_CONFIG_LOG_PATH_MAX 2048
 
 static zeus_string_t zeus_config_uid = {"user",sizeof("user")};
 static zeus_string_t zeus_config_gid = {"group",sizeof("group")};
@@ -444,6 +445,110 @@ zeus_status_t zeus_config_get_log_path(zeus_process_t *process){
 	process->log = alloc_log;
 
 	return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_config_gateworker_log_path(zeus_process_t *process){
+ 
+    zeus_log_t *alloc_log;
+    zeus_hash_data_t *hd;
+
+    zeus_char_t path[ZEUS_CONFIG_LOG_PATH_MAX];
+    zeus_char_t *beg;
+    zeus_char_t *end;
+    
+    zeus_size_t path_sz;
+
+    zeus_size_t nwrite;
+
+    if(zeus_config_check(process->config,process->log,&hd,&zeus_config_log) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
+
+    if(hd->d->size <= 1){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"log configuration error");
+        return ZEUS_ERROR;
+    }
+
+    alloc_log = (zeus_log_t *)zeus_memory_alloc(process->pool,sizeof(zeus_log_t));
+    if(alloc_log == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create %s log error",(process->pidx)?"worker":"gateway");
+        return ZEUS_ERROR;
+    }
+
+    beg = path;
+    end = path + ZEUS_CONFIG_LOG_PATH_MAX;
+
+    nwrite = snprintf(beg,zeus_addr_delta(end,beg),"%s",hd->d->data);
+    beg += nwrite;
+
+    if(beg >= end){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"error with log file name");
+        return ZEUS_ERROR;
+    }
+    
+    if(hd->d->data[hd->d->size- 2] == '/'){
+        //do nothing
+    }else{
+        nwrite = snprintf(beg,zeus_addr_delta(end,beg),"%s","/");
+        beg += nwrite;
+        if(beg >= end){
+            zeus_write_log(process->log,ZEUS_LOG_ERROR,"error with log file name");
+            return ZEUS_ERROR;
+        }
+    }
+    
+    if(process->pidx == 0){
+        nwrite = snprintf(beg,zeus_addr_delta(end,beg),"zeus.gateway.log");
+    }else{
+        nwrite = snprintf(beg,zeus_addr_delta(end,beg),"zeus.worker%d.log",process->pidx);
+    }
+    
+    beg += nwrite;
+    if(beg >= end){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"error with log file name");
+        return ZEUS_ERROR;
+    }
+
+    *beg ++ = '\0';
+
+    alloc_log->level = process->log->level;
+
+    path_sz = zeus_addr_delta(beg,path);
+
+    alloc_log->path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
+    if(alloc_log->path == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log structure error");
+        return ZEUS_ERROR;
+    }
+
+    alloc_log->path->size = path_sz;
+    alloc_log->path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * path_sz);
+    if(alloc_log->path->data == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log structure path data error");
+        return ZEUS_ERROR;
+    }
+
+    zeus_memcpy(alloc_log->path->data,path,alloc_log->path->size);
+
+    if((alloc_log->fd = open(alloc_log->path->data,O_RDWR | O_CREAT | O_APPEND,\
+                             S_IRUSR | S_IWUSR | S_IRGRP )) == -1){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"open %s process log error : %s",\
+                      (process->pidx)?"worker":"gateway",strerror(errno));
+        return ZEUS_ERROR;
+    }
+
+    alloc_log->status = ZEUS_LOG_OPEN;
+
+    close(process->log->fd);
+
+    process->save = process->log;
+
+    process->log = alloc_log;
+    
+    zeus_write_log(process->log,ZEUS_LOG_NOTICE,"log initialize");
+
+    return ZEUS_OK;
 
 }
 
