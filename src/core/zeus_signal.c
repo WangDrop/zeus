@@ -71,7 +71,7 @@ void zeus_signal_handler(int signo){
             
             zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%s process recieves quit signals",\
                           (process->pidx)?"worker":"gateway");
-            
+
             exit(0);
 
             break;

@@ -8,6 +8,7 @@
 
 
 zeus_connection_t *zeus_create_connection_node(zeus_process_t *process){
+
 	
 	zeus_connection_t *alloc_connection;
 
@@ -18,6 +19,11 @@ zeus_connection_t *zeus_create_connection_node(zeus_process_t *process){
 		return NULL;
 	}
 
+    alloc_connection->rd = NULL;
+    alloc_connection->wr = NULL;
+
+    alloc_connection->rdstatus = ZEUS_EVENT_OFF;
+    alloc_connection->wrstatus = ZEUS_EVENT_OFF;
 
 	return alloc_connection;
 

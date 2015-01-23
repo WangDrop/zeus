@@ -7,14 +7,14 @@
 
 #include "zeus_list.h"
 
-zeus_list_t *zeus_create_list(zeus_memory_pool_t *pool){
+zeus_list_t *zeus_create_list(zeus_memory_pool_t *pool,zeus_log_t *log){
 
     zeus_list_t *alloc_list;
 
     alloc_list = (zeus_list_t *)zeus_memory_alloc(pool,sizeof(zeus_list_t));
 
     if(alloc_list == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"create link list error");
+        zeus_write_log(log,ZEUS_LOG_ERROR,"create link list error");
         return NULL;
     }
 
@@ -25,14 +25,14 @@ zeus_list_t *zeus_create_list(zeus_memory_pool_t *pool){
 
 }
 
-zeus_list_data_t *zeus_create_data_node(zeus_memory_pool_t *pool){
+zeus_list_data_t *zeus_create_list_data_node(zeus_memory_pool_t *pool,zeus_log_t *log){
     
     zeus_list_data_t *alloc_data = NULL;
 
     alloc_data = (zeus_list_data_t *)zeus_memory_alloc(pool,sizeof(zeus_list_data_t));
 
     if(alloc_data == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"create link list data error");
+        zeus_write_log(log,ZEUS_LOG_ERROR,"create link list data error");
         return NULL;
     }
 

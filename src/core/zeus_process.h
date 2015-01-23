@@ -22,6 +22,7 @@ struct zeus_process_s{
     zeus_log_t *log;
     zeus_config_t *config;
     zeus_list_data_t *buffer_pool;
+    zeus_list_data_t *connection_pool;
     zeus_log_t *old;
     zeus_log_t *save;
 
@@ -37,13 +38,15 @@ struct zeus_process_s{
     zeus_uint_t max_connection;
 
 
-
     zeus_pid_t pid;
     /* -1 means master , 0 means gateway*/
     zeus_idx_t pidx;
     zeus_fd_t listenfd;
     zeus_int_t **channel;
     volatile zeus_pid_t *child;
+
+
+    zeus_list_t *connection;
 
 
     zeus_size_t arg_sz;

@@ -44,6 +44,7 @@ typedef uint16_t zeus_ushort_t;
 typedef pid_t zeus_pid_t;
 typedef int zeus_idx_t;
 typedef sig_atomic_t zeus_atomic_t;
+typedef unsigned long zeus_event_status_t;
 
 #define ZEUS_OK 0x0
 #define ZEUS_ERROR 0x1
@@ -81,6 +82,7 @@ typedef struct zeus_event_s zeus_event_t;
 #include "zeus_signal.h"
 
 #include "../event/zeus_event.h"
+#include "../event/zeus_event_io.h"
 
 #define ZEUS_DEFAULT_LOG_LEVEL ZEUS_LOG_NOTICE
 #define ZEUS_LOG_FILENAME "zeus.log"

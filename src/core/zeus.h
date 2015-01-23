@@ -34,4 +34,6 @@ zeus_status_t zeus_respawn(zeus_process_t *);
 
 zeus_status_t zeus_inform_exit(zeus_process_t *);
 
+zeus_status_t zeus_exit(zeus_process_t *);
+
 #endif

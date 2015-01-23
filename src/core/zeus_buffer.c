@@ -21,7 +21,7 @@ zeus_list_data_t *zeus_create_buffer_list_node(zeus_process_t *process){
         return alloc_node;
     }
 
-    alloc_node = zeus_create_data_node(process->pool);
+    alloc_node = zeus_create_list_data_node(process->pool,process->log);
     if(alloc_node == NULL){
         zeus_write_log(process->log,ZEUS_LOG_ERROR,"create buffer error");
         return NULL;

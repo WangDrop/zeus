@@ -16,6 +16,14 @@ struct zeus_connection_s{
 
 	zeus_fd_t fd;
 
+    zeus_event_t *rd;
+
+    zeus_event_t *wr;
+
+    zeus_event_status_t rdstatus;
+
+    zeus_event_status_t wrstatus;
+
 };
 
 

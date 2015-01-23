@@ -493,3 +493,9 @@ zeus_status_t zeus_inform_exit(zeus_process_t *p){
     return ZEUS_OK;
 
 }
+
+zeus_status_t zeus_exit(zeus_process_t *p){
+
+    //
+
+}

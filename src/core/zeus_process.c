@@ -35,6 +35,7 @@ zeus_process_t *zeus_create_process(void){
     alloc_process->log = alloc_log;
     alloc_process->config = NULL;
     alloc_process->buffer_pool = NULL;
+    alloc_process->connection_pool = NULL;
 	alloc_process->old = NULL;
 	alloc_process->pid_run_flag_path = NULL;
 
