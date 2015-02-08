@@ -40,6 +40,7 @@ zeus_process_t *zeus_create_process(void){
 	alloc_process->pid_run_flag_path = NULL;
 
 	alloc_process->pidx = -1;
+    alloc_process->epfd = -1;
 
 	alloc_process->record_envc = 0;
 	alloc_process->record_argc = 0;

@@ -24,6 +24,8 @@ struct zeus_event_s{
 
     zeus_event_handler *handler;
 
+    zeus_epoll_event_t *event;
+
 };
 
 zeus_event_t *zeus_create_event(zeus_process_t *);
@@ -33,5 +35,7 @@ zeus_status_t zeus_event_loop(zeus_process_t *);
 
 zeus_status_t zeus_event_loop_init_signal(zeus_process_t *);
 zeus_status_t zeus_event_loop_init_connection(zeus_process_t *);
+
+zeus_status_t zeus_event_create_epfd(zeus_process_t *);
 
 #endif

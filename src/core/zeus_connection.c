@@ -21,9 +21,11 @@ zeus_connection_t *zeus_create_connection_node(zeus_process_t *process){
 
     alloc_connection->rd = NULL;
     alloc_connection->wr = NULL;
+    alloc_connection->timeout = NULL;
 
     alloc_connection->rdstatus = ZEUS_EVENT_OFF;
     alloc_connection->wrstatus = ZEUS_EVENT_OFF;
+    alloc_connection->timeoutstatus = ZEUS_EVENT_OFF;
 
 	return alloc_connection;
 

@@ -47,6 +47,7 @@ struct zeus_process_s{
 
 
     zeus_list_t *connection;
+    zeus_fd_t epfd;
 
 
     zeus_size_t arg_sz;

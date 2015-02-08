@@ -25,6 +25,8 @@ zeus_event_t *zeus_create_event(zeus_process_t *p){
         return NULL;
     }
 
+    alloc_event->event = NULL;
+
     return alloc_event;
 
 }
@@ -88,6 +90,11 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
 
     if(zeus_event_loop_init_connection(p) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process init loop connection error",\
+                      (p->pidx)?"worker":"gateway");
+    }
+        
+    if(zeus_event_create_epfd(p) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create epoll fd error",\
                       (p->pidx)?"worker":"gateway");
     }
 
@@ -181,6 +188,16 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         }
 
         ev->connection = conn;
+        
+        if(!ev->event){
+            if((ev->event = (zeus_epoll_event_t *)zeus_memory_alloc(p->pool,sizeof(zeus_epoll_event_t))) == NULL){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process alloc read event error");
+                return ZEUS_ERROR;
+            }
+        }
+
+        ev->event->data.ptr = (void *)ev;
+        
         conn->fd = p->listenfd;
         conn->rd = ev;
         conn->rdstatus = ZEUS_EVENT_ON;
@@ -210,11 +227,19 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
 
     if((ev = zeus_create_event(p)) == NULL){
             
-        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process,create channel connection event error",\
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create channel connection event error",\
                       (p->pidx)?"worker":"gateway");
 
         return ZEUS_ERROR;
 
+    }
+
+    if(!ev->event){
+        if((ev->event = (zeus_epoll_event_t *)zeus_memory_alloc(p->pool,sizeof(zeus_epoll_event_t))) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create channel event error",\
+                          (p->pidx)?"worker":"gateway");
+            return ZEUS_ERROR;
+        }
     }
 
     conn->fd = p->channel[p->pidx][0];
@@ -226,4 +251,16 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
     zeus_insert_list(p->connection,node);
     
     return ZEUS_OK;
+}
+
+zeus_status_t zeus_event_create_epfd(zeus_process_t *p){
+ 
+    if((p->epfd = epoll_create(p->max_connection)) == -1){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create epoll fd error : %s",\
+                      (p->pidx)?"worker":"gateway",strerror(errno));
+        return ZEUS_ERROR;
+    }
+
+    return ZEUS_OK;
+
 }

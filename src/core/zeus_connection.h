@@ -20,9 +20,13 @@ struct zeus_connection_s{
 
     zeus_event_t *wr;
 
+    zeus_event_t *timeout;
+
     zeus_event_status_t rdstatus;
 
     zeus_event_status_t wrstatus;
+
+    zeus_event_status_t timeoutstatus;
 
 };
 

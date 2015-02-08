@@ -25,6 +25,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/epoll.h>
 
 typedef unsigned long zeus_ulong_t;
 typedef unsigned char zeus_uchar_t;
@@ -45,6 +46,7 @@ typedef pid_t zeus_pid_t;
 typedef int zeus_idx_t;
 typedef sig_atomic_t zeus_atomic_t;
 typedef unsigned long zeus_event_status_t;
+typedef struct epoll_event zeus_epoll_event_t;
 
 #define ZEUS_OK 0x0
 #define ZEUS_ERROR 0x1
