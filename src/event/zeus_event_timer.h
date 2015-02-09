@@ -43,4 +43,12 @@ zeus_status_t zeus_event_timer_rbtree_insert(zeus_event_timer_rbtree_t *,zeus_ev
 zeus_status_t zeus_event_timer_rbtree_insert_fixup(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
 
 
+zeus_event_timer_rbnode_t *zeus_event_timer_rbtree_find_next(zeus_event_timer_rbtree_t *,
+                                                             zeus_event_timer_rbnode_t *);
+zeus_status_t zeus_event_timer_rbtree_transplant(zeus_event_timer_rbtree_t *,\
+                                                 zeus_event_timer_rbnode_t *,\
+                                                 zeus_event_timer_rbnode_t *);
+zeus_status_t zeus_event_timer_rbtree_delete(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
+zeus_status_t zeus_event_timer_rbtree_delete_fixup(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
+
 #endif
