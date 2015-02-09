@@ -14,3 +14,7 @@ zeus_status_t zeus_event_io_read(zeus_event_t *ev){
 zeus_status_t zeus_event_io_write(zeus_event_t *ev){
 
 }
+
+zeus_status_t zeus_event_io_accept(zeus_event_t *ev){
+
+}

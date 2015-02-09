@@ -98,7 +98,9 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
                       (p->pidx)?"worker":"gateway");
     }
 
-    pause();
+    while(1){
+        pause();
+    }
 
 }
 
@@ -201,7 +203,7 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         conn->fd = p->listenfd;
         conn->rd = ev;
         conn->rdstatus = ZEUS_EVENT_ON;
-        ev->handler = zeus_event_io_read;
+        ev->handler = zeus_event_io_accept;
 
         node->d = (void *)conn;
         
