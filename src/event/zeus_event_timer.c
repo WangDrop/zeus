@@ -7,6 +7,40 @@
 
 #include "zeus_event_timer.h"
 
+static zeus_int_t zeus_event_timer_rbtree_key_compare(zeus_timeval_t *,zeus_timeval_t *);
+static zeus_status_t zeus_event_timer_rbtree_lrotate(zeus_event_timer_rbtree_t *,\
+                                                     zeus_event_timer_rbnode_t *);
+static zeus_status_t zeus_event_timer_rbtree_rrotate(zeus_event_timer_rbtree_t *,\
+                                                     zeus_event_timer_rbnode_t *);
+static zeus_status_t zeus_event_timer_rbtree_insert_fixup(zeus_event_timer_rbtree_t *,\
+                                                          zeus_event_timer_rbnode_t *);
+static zeus_status_t zeus_event_timer_rbtree_transplant(zeus_event_timer_rbtree_t *,\
+                                                 zeus_event_timer_rbnode_t *,\
+                                                 zeus_event_timer_rbnode_t *);
+
+static zeus_status_t zeus_event_timer_rbtree_delete_fixup(zeus_event_timer_rbtree_t *,\
+                                                          zeus_event_timer_rbnode_t *);
+
+zeus_event_timer_rbnode_t *zeus_event_timer_create_rbnode(zeus_process_t *p){
+    
+    zeus_event_timer_rbnode_t *alloc_rbnode;
+    
+    // consider the object pool here
+
+    alloc_rbnode = (zeus_event_timer_rbnode_t *)zeus_memory_alloc(p->pool,\
+                                         sizeof(zeus_event_timer_rbnode_t));
+
+    if(alloc_rbnode == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"create timer rbtree node error");
+        return NULL;
+    }
+
+    alloc_rbnode->lchild = alloc_rbnode->rchild = alloc_rbnode->parent = NULL;
+
+    return alloc_rbnode;
+
+}
+
 zeus_status_t zeus_event_timer_rbtree_construct(zeus_process_t *p){
 
     p->timer = (zeus_event_timer_rbtree_t *)zeus_memory_alloc(p->pool,\
@@ -235,6 +269,10 @@ zeus_status_t zeus_event_timer_rbtree_transplant(zeus_event_timer_rbtree_t *t,\
 zeus_status_t zeus_event_timer_rbtree_delete(zeus_event_timer_rbtree_t *t,\
                                              zeus_event_timer_rbnode_t *z){
 
+    if(z == t->nil){
+        return ZEUS_OK;
+    }
+
     zeus_event_timer_rbnode_t *x;
     zeus_event_timer_rbnode_t *y = z;
     zeus_uint_t y_origin_color = y->color;
@@ -301,7 +339,7 @@ zeus_status_t zeus_event_timer_rbtree_delete_fixup(zeus_event_timer_rbtree_t *t,
                 w->color = ZEUS_EVENT_TIMER_RED;
                 x = x->parent;
             }else if(w->rchild->color == ZEUS_EVENT_TIMER_BLACK){
-                w->lchild->color == ZEUS_EVENT_TIMER_BLACK;
+                w->lchild->color = ZEUS_EVENT_TIMER_BLACK;
                 w->color = ZEUS_EVENT_TIMER_RED;
                 zeus_event_timer_rbtree_rrotate(t,w);
                 w = x->parent->rchild;
@@ -346,15 +384,35 @@ zeus_status_t zeus_event_timer_rbtree_delete_fixup(zeus_event_timer_rbtree_t *t,
 
     x->color = ZEUS_EVENT_TIMER_BLACK;
 
+    return ZEUS_OK;
+
 }
 
 zeus_event_timer_rbnode_t *zeus_event_timer_rbtree_find_next(zeus_event_timer_rbtree_t *t,\
                                                              zeus_event_timer_rbnode_t *z){
     
+
     while(z->lchild != t->nil){
         z = z->lchild;
     }
 
     return z;
     
+}
+
+/* Just for debug */
+void zeus_event_timer_rbtree_travel(zeus_event_timer_rbtree_t *t,\
+                                             zeus_event_timer_rbnode_t *p,\
+                                             zeus_log_t *log){
+
+    if(p == t->nil){
+        return ;      
+    }
+
+    zeus_event_timer_rbtree_travel(t,p->lchild,log);
+    zeus_write_log(log,ZEUS_LOG_NOTICE,"(%u %u)",p->t.tv_sec,p->t.tv_usec);
+    zeus_event_timer_rbtree_travel(t,p->rchild,log);
+
+    return ;
+
 }

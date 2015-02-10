@@ -34,21 +34,19 @@ struct zeus_event_timer_rbtree_s{
 
 };
 
+zeus_event_timer_rbnode_t *zeus_event_timer_create_rbnode(zeus_process_t *);
+
 zeus_status_t zeus_event_timer_rbtree_construct(zeus_process_t *);
 
-zeus_int_t zeus_event_timer_rbtree_key_compare(zeus_timeval_t *,zeus_timeval_t *);
-zeus_status_t zeus_event_timer_rbtree_lrotate(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
-zeus_status_t zeus_event_timer_rbtree_rrotate(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
 zeus_status_t zeus_event_timer_rbtree_insert(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
-zeus_status_t zeus_event_timer_rbtree_insert_fixup(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
-
 
 zeus_event_timer_rbnode_t *zeus_event_timer_rbtree_find_next(zeus_event_timer_rbtree_t *,
                                                              zeus_event_timer_rbnode_t *);
-zeus_status_t zeus_event_timer_rbtree_transplant(zeus_event_timer_rbtree_t *,\
-                                                 zeus_event_timer_rbnode_t *,\
-                                                 zeus_event_timer_rbnode_t *);
 zeus_status_t zeus_event_timer_rbtree_delete(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
-zeus_status_t zeus_event_timer_rbtree_delete_fixup(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
+
+/* Just for test */
+void zeus_event_timer_rbtree_travel(zeus_event_timer_rbtree_t *,\
+                                    zeus_event_timer_rbnode_t *,\
+                                    zeus_log_t *);
 
 #endif

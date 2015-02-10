@@ -82,7 +82,8 @@ zeus_status_t zeus_master_event_loop(zeus_process_t *p){
 
 zeus_status_t zeus_event_loop(zeus_process_t *p){
     
-    
+    zeus_event_timer_rbnode_t *tnode;
+
     if(zeus_event_loop_init_signal(p) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process init loop signal error",\
                       (p->pidx)?"worker":"gateway");
@@ -98,8 +99,10 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
                       (p->pidx)?"worker":"gateway");
     }
 
-    while(1){
+    while(1){ 
+        
         pause();
+
     }
 
 }
