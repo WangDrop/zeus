@@ -83,6 +83,7 @@ zeus_status_t zeus_master_event_loop(zeus_process_t *p){
 
 zeus_status_t zeus_event_loop(zeus_process_t *p){
     
+    struct timeval nt;
     zeus_event_timer_rbnode_t *tnode;
 
     if(zeus_event_loop_init_signal(p) == ZEUS_ERROR){
@@ -111,7 +112,7 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
     }
 
     while(1){ 
-        
+    
         pause();
 
     }
