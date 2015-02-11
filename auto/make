@@ -44,11 +44,11 @@ done
 
 for headerfile in $ZEUS_SRC_EVENT_CHECK_FILE
 do
-	tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
-	tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
-	echo "$tmp_dependency_=zeus_common.h $headerfile.h $headerfile.c"
-	echo "$tmp_command_=$headerfile.c"
-	echo 
+    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
+    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
+    echo "$tmp_dependency_=zeus_common.h $headerfile.h $headerfile.c"
+    echo "$tmp_command_=$headerfile.c"
+    echo 
 done
 
 
@@ -62,7 +62,7 @@ do
 done
 for headerfile in $ZEUS_SRC_EVENT_CHECK_FILE
 do
-	echo -n "$headerfile.o "
+    echo -n "$headerfile.o "
 done
 
 echo
@@ -78,7 +78,7 @@ do
 done
 for headerfile in $ZEUS_SRC_EVENT_CHECK_FILE
 do
-	echo -n " $BUILD_DIR/$headerfile.o"
+    echo -n " $BUILD_DIR/$headerfile.o"
 done
 echo " -o zeus"
 echo
@@ -97,12 +97,12 @@ done
 
 for headerfile in $ZEUS_SRC_EVENT_CHECK_FILE
 do
-	tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
-	tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
-	echo "$headerfile.o:\$($tmp_dependency_)"
-	echo -e -n "\t"
-	echo "cc -c \$(SOURCE_EVENT_DIR)/\$($tmp_command_) -o $BUILD_DIR/$headerfile.o"
-	echo 
+    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
+    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
+    echo "$headerfile.o:\$($tmp_dependency_)"
+    echo -e -n "\t"
+    echo "cc -c \$(SOURCE_EVENT_DIR)/\$($tmp_command_) -o $BUILD_DIR/$headerfile.o"
+    echo 
 done
 
 

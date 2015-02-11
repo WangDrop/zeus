@@ -199,10 +199,10 @@ fi
 echo -n "check max connection $ZEUS_MAX_CONNECTION ... "
 if [ $ZEUS_MAX_CONNECTION -lt 1 ]
 then
-	echo "error , max connection must be greater than 1 !"
-	exit 1
+    echo "error , max connection must be greater than 1 !"
+    exit 1
 else
-	echo "success !"
+    echo "success !"
 fi
 
 

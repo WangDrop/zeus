@@ -87,15 +87,15 @@ echo -n "check build file ... "
 
 if [ -f "$BUILD_DIR/$BUILD_H" ]
 then
-	echo "exists , re-generate !"
-	if rm -rf "$BUILD_DIR/$BUILD_H"
-	then
-		:
-	else
-		echo "re-generate zeus_build.h fail !"
-	fi
+    echo "exists , re-generate !"
+    if rm -rf "$BUILD_DIR/$BUILD_H"
+    then
+        :
+    else
+        echo "re-generate zeus_build.h fail !"
+    fi
 else
-	echo "doesn't exist , generate !"
+    echo "doesn't exist , generate !"
 fi
 
 
@@ -105,10 +105,10 @@ echo -n "create build file ... "
 
 if touch "$BUILD_DIR/$BUILD_H" 1>/dev/null 2>/dev/null
 then
-	echo "success !"
+    echo "success !"
 else
-	echo "fail !"
-	exit 1
+    echo "fail !"
+    exit 1
 fi
 
 
@@ -207,5 +207,5 @@ ZEUS_SRC_EVENT_CHECK_FILE="$ZEUS_SRC_EVENT_CHECK_FILE zeus_event_helper"
 
 for zeusfile in $ZEUS_SRC_EVENT_CHECK_FILE
 do
-	check_file_ "../$SRC_DIR/$EVENT_DIR/$zeusfile.h"
+    check_file_ "../$SRC_DIR/$EVENT_DIR/$zeusfile.h"
 done
