@@ -100,17 +100,17 @@ void zeus_log_hash_table(zeus_hash_t *ht,zeus_log_t *log){
 
 zeus_hash_data_t *zeus_hash_lookup(zeus_hash_t *h,zeus_string_t *s){
 	
-	zeus_uint_t val = zeus_get_hash_key(s);
-	zeus_hash_data_t *p = h->bucket[val];
+    zeus_uint_t val = zeus_get_hash_key(s);
+    zeus_hash_data_t *p = h->bucket[val];
 
-	while(p != NULL){
-		if(zeus_string_equal(s,p->s) == 0){
-			return p;
-		}else{
-			p = p->next;
-		}
-	}
+    while(p != NULL){
+        if(zeus_string_equal(s,p->s) == 0){
+            return p;
+        }else{
+            p = p->next;
+        }
+    }
 
-	return p;
+    return p;
 
 }

@@ -53,14 +53,8 @@ done
 
 
 
-echo "ZEUS_DEPENDENCY=zeus_common.h zeus.h zeus.c"
-echo "ZEUS_COMMAND=zeus.c"
-echo
-
-
 
 echo -n "ALL_OBJ="
-echo -n "zeus.o "
 
 for headerfile in $ZEUS_SRC_CORE_CHECK_FILE
 do
@@ -78,7 +72,6 @@ echo
 echo "zeus:\$(ALL_OBJ)"
 echo -e -n "\t"
 echo -n "cc "
-echo -n "$BUILD_DIR/zeus.o"
 for headerfile in $ZEUS_SRC_CORE_CHECK_FILE
 do
     echo -n " $BUILD_DIR/$headerfile.o"
@@ -90,11 +83,6 @@ done
 echo " -o zeus"
 echo
 
-
-echo "zeus.o:\$(ZEUS_DEPENDENCY)"
-echo -e -n "\t"
-echo "cc -c \$(SOURCE_CORE_DIR)/\$(ZEUS_COMMAND) -o $BUILD_DIR/zeus.o"
-echo 
 
 
 for headerfile in $ZEUS_SRC_CORE_CHECK_FILE

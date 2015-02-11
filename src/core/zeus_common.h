@@ -85,6 +85,7 @@ typedef struct zeus_event_timer_rbtree_s zeus_event_timer_rbtree_t;
 #include "zeus_list.h"
 #include "zeus_connection.h"
 #include "zeus_signal.h"
+#include "zeus.h"
 
 #include "../event/zeus_event.h"
 #include "../event/zeus_event_io.h"

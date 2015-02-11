@@ -14,7 +14,7 @@
 
 struct zeus_connection_s{
 
-	zeus_fd_t fd;
+    zeus_fd_t fd;
 
     zeus_event_t *rd;
 
