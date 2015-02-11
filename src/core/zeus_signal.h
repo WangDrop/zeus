@@ -22,21 +22,21 @@ struct zeus_signal_s{
 };
 
 
-static zeus_signal_t zeus_master_ignore_signal[] = 	    \
-              {										    \
-                {SIGTTIN,"SIGTTIN"},				    \
-                {SIGTTOU,"SIGTTOU"},				    \
-                {SIGPIPE,"SIGPIPE"}					    \
+static zeus_signal_t zeus_master_ignore_signal[] =      \
+              {                                         \
+                {SIGTTIN,"SIGTTIN"},                    \
+                {SIGTTOU,"SIGTTOU"},                    \
+                {SIGPIPE,"SIGPIPE"}                     \
               };
 
-static zeus_signal_t zeus_master_catch_signal[] = 	    \
-              {										    \
-                {SIGINT,"SIGINT"}, 					    \
-                {SIGQUIT,"SIGQUIT"},				    \
-                {SIGTERM,"SIGTERM"},				    \
-                {SIGHUP,"SIGHUP"},					    \
-                {SIGCHLD,"SIGCHLD"},				    \
-                {SIGSEGV,"SIGSEGV"}					    \
+static zeus_signal_t zeus_master_catch_signal[] =       \
+              {                                         \
+                {SIGINT,"SIGINT"},                      \
+                {SIGQUIT,"SIGQUIT"},                    \
+                {SIGTERM,"SIGTERM"},                    \
+                {SIGHUP,"SIGHUP"},                      \
+                {SIGCHLD,"SIGCHLD"},                    \
+                {SIGSEGV,"SIGSEGV"}                     \
               };
 
 static zeus_signal_t zeus_gateworker_catch_signal[] =   \

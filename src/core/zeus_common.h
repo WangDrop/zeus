@@ -26,6 +26,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/epoll.h>
+#include <sys/wait.h>
 
 typedef unsigned long zeus_ulong_t;
 typedef unsigned char zeus_uchar_t;

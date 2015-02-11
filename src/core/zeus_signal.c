@@ -13,22 +13,20 @@ void zeus_master_signal_handler(int signo){
     zeus_pid_t pid;
     zeus_size_t idx;
 
-	switch(signo){
+    switch(signo){
 
-		case SIGINT:
-		case SIGQUIT:
-		case SIGTERM:
-		case SIGHUP:
+        case SIGINT:
+        case SIGQUIT:
+        case SIGTERM:
+        case SIGHUP:
             
             zeus_write_log(process->log,ZEUS_LOG_NOTICE,"master process recieves quit signals");
+            zeus_quit = 1;
+            break;
 
-			zeus_quit = 1;
-			break;
-
-		case SIGCHLD:
+        case SIGCHLD:
             
             zeus_write_log(process->log,ZEUS_LOG_NOTICE,"master process recieves SIGCHLD signal");
-
             while((pid = waitpid(-1,NULL,WNOHANG)) > 0){
                 for(idx = 0 ; idx < (process->worker + 1) ; ++ idx){
                     if(process->child[idx] == pid){
@@ -39,23 +37,22 @@ void zeus_master_signal_handler(int signo){
                     }
                 }
             }
+            
+            break;
 
-			break;
-
-		case SIGSEGV:
+        case SIGSEGV:
 
             zeus_write_log(process->log,ZEUS_LOG_NOTICE,"master process recieves SIGSEGV signal");
+            zeus_segv = 1;
+            break;
 
-			zeus_segv = 1;
-			break;
-
-		default:
-			break;
-	}
+        default:
+            break;
+    }
 
     errno = olderrno;
 	
-	return ;
+    return ;
 }
 
 
@@ -63,38 +60,34 @@ void zeus_signal_handler(int signo){
     
     zeus_int_t olderrno = errno;
 
-	switch(signo){
+    switch(signo){
 
-		case SIGINT:
-		case SIGQUIT:
-		case SIGTERM:
+        case SIGINT:
+        case SIGQUIT:
+        case SIGTERM:
             
             zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%s process recieves quit signals",\
                           (process->pidx)?"worker":"gateway");
-
             exit(0);
-
             break;
 
-		case SIGSEGV:
+        case SIGSEGV:
             
             zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%s process recieves SIGSEGV signals",\
                           (process->pidx)?"worker":"gateway");
-            
             exit(0);
+            break;
 
-			break;
+        case SIGALRM:
+            break;
+        default:
+            break;
 
-		case SIGALRM:
-			break;
-		default:
-			break;
-
-	}
+    }
 
     
     errno = olderrno;
 
-	return ;
+    return ;
 	
 }
