@@ -12,6 +12,7 @@
 #include "../core/zeus_common.h"
 
 typedef zeus_status_t (zeus_event_handler)(zeus_event_t *);
+typedef int zeus_event_rw_flag_t;
 
 #define ZEUS_EVENT_ON 1
 #define ZEUS_EVENT_OFF 0
@@ -24,12 +25,13 @@ struct zeus_event_s{
 
     zeus_event_handler *handler;
 
-    zeus_epoll_event_t *event;
+    zeus_event_timer_rbnode_t *timeout_rbnode;
+
+    zeus_event_status_t timeout;
 
 };
 
 zeus_event_t *zeus_create_event(zeus_process_t *);
-
 zeus_status_t zeus_master_event_loop(zeus_process_t *);
 zeus_status_t zeus_event_loop(zeus_process_t *);
 
@@ -37,5 +39,6 @@ zeus_status_t zeus_event_loop_init_signal(zeus_process_t *);
 zeus_status_t zeus_event_loop_init_connection(zeus_process_t *);
 
 zeus_status_t zeus_event_create_epfd(zeus_process_t *);
+zeus_status_t zeus_event_init_epoll(zeus_process_t *);
 
 #endif

@@ -36,6 +36,7 @@ zeus_event_timer_rbnode_t *zeus_event_timer_create_rbnode(zeus_process_t *p){
     }
 
     alloc_rbnode->lchild = alloc_rbnode->rchild = alloc_rbnode->parent = NULL;
+    alloc_rbnode->ev = NULL;
 
     return alloc_rbnode;
 

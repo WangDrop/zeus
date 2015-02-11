@@ -89,6 +89,7 @@ typedef struct zeus_event_timer_rbtree_s zeus_event_timer_rbtree_t;
 #include "../event/zeus_event.h"
 #include "../event/zeus_event_io.h"
 #include "../event/zeus_event_timer.h"
+#include "../event/zeus_event_helper.h"
 
 #define ZEUS_DEFAULT_LOG_LEVEL ZEUS_LOG_NOTICE
 #define ZEUS_LOG_FILENAME "zeus.log"

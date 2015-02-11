@@ -24,7 +24,6 @@ struct zeus_connection_s{
 
     zeus_event_status_t wrstatus;
 
-
 };
 
 
