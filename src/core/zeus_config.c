@@ -191,161 +191,161 @@ void zeus_log_config(zeus_config_t *config,zeus_log_t *log){
 }
 
 zeus_status_t zeus_config_check(zeus_config_t *config,zeus_log_t *log,\
-								zeus_hash_data_t **d,zeus_string_t *s){
+                                zeus_hash_data_t **d,zeus_string_t *s){
 	
-	if((*d = zeus_hash_lookup(config->conf,s)) == NULL){
-		zeus_write_log(log,ZEUS_LOG_ERROR,"can not find the string %s in the mapping",s->data);
-		return ZEUS_ERROR;
-	}
+    if((*d = zeus_hash_lookup(config->conf,s)) == NULL){
+        zeus_write_log(log,ZEUS_LOG_ERROR,"can not find the string %s in the mapping",s->data);
+        return ZEUS_ERROR;
+    }
 
-	return ZEUS_OK;
+    return ZEUS_OK;
 
 }
 
 
 zeus_status_t zeus_config_get_uid(zeus_config_t *config,zeus_log_t *log,zeus_uid_t *uid){
 	
-	zeus_hash_data_t *hd;
-	zeus_int_t err;
+    zeus_hash_data_t *hd;
+    zeus_int_t err;
 
-	struct passwd *pwd;
+    struct passwd *pwd;
 
-	if(zeus_config_check(config,log,&hd,&zeus_config_uid) == ZEUS_ERROR){
-		return ZEUS_ERROR;
-	}
+    if(zeus_config_check(config,log,&hd,&zeus_config_uid) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
 
-	errno = 0;
-	if((pwd = getpwnam(hd->d->data)) == NULL){
-		err = errno;
-		if(err != 0){
-			zeus_write_log(log,ZEUS_LOG_ERROR,"get user %s's uid fail : %s",hd->d->data,strerror(err));
-		}else{
-			zeus_write_log(log,ZEUS_LOG_ERROR,"can not find the user : %s",hd->d->data);
-		}
-		return ZEUS_ERROR;
-	}
+    errno = 0;
+    if((pwd = getpwnam(hd->d->data)) == NULL){
+        err = errno;
+        if(err != 0){
+            zeus_write_log(log,ZEUS_LOG_ERROR,"get user %s's uid fail : %s",hd->d->data,strerror(err));
+        }else{
+            zeus_write_log(log,ZEUS_LOG_ERROR,"can not find the user : %s",hd->d->data);
+        }
+        return ZEUS_ERROR;
+    }
 
 	
-	*uid = pwd->pw_uid;
+    *uid = pwd->pw_uid;
 
-	return ZEUS_OK;
+    return ZEUS_OK;
 	
 }
 
 
 zeus_status_t zeus_config_get_gid(zeus_config_t *config,zeus_log_t *log,zeus_gid_t *gid){
 	
-	zeus_hash_data_t *hd;
-	zeus_int_t err;
+    zeus_hash_data_t *hd;
+    zeus_int_t err;
 
-	struct passwd *pwd;
+    struct passwd *pwd;
 
-	if(zeus_config_check(config,log,&hd,&zeus_config_gid) == ZEUS_ERROR){
-		return ZEUS_ERROR;
-	}
+    if(zeus_config_check(config,log,&hd,&zeus_config_gid) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
 	
-	errno = 0;
-	if((pwd = getpwnam(hd->d->data)) == NULL){
-		err = errno;
-		if(err != 0){
-			zeus_write_log(log,ZEUS_LOG_ERROR,"get user %s's gid fail : %s",hd->d->data,strerror(err));
-		}else{
-			zeus_write_log(log,ZEUS_LOG_ERROR,"can not find the user : %s",hd->d->data);
-		}
-		return ZEUS_ERROR;
-	}
+    errno = 0;
+    if((pwd = getpwnam(hd->d->data)) == NULL){
+        err = errno;
+        if(err != 0){
+            zeus_write_log(log,ZEUS_LOG_ERROR,"get user %s's gid fail : %s",hd->d->data,strerror(err));
+        }else{
+            zeus_write_log(log,ZEUS_LOG_ERROR,"can not find the user : %s",hd->d->data);
+        }
+        return ZEUS_ERROR;
+    }
 
-	*gid = pwd->pw_gid;
+    *gid = pwd->pw_gid;
 
-	return ZEUS_OK;
+    return ZEUS_OK;
 
 }
 
 zeus_status_t zeus_config_get_resolution(zeus_config_t *config,zeus_log_t *log,zeus_uint_t *val){
 	
-	zeus_hash_data_t *hd;
-	zeus_char_t *beg;
-	zeus_char_t *end;
+    zeus_hash_data_t *hd;
+    zeus_char_t *beg;
+    zeus_char_t *end;
 	
-	if(zeus_config_check(config,log,&hd,&zeus_config_timer) == ZEUS_ERROR){
-		return ZEUS_ERROR;
-	}
+    if(zeus_config_check(config,log,&hd,&zeus_config_timer) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
 	
-	beg = hd->d->data;
-	end = hd->d->data + hd->d->size - 1;
+    beg = hd->d->data;
+    end = hd->d->data + hd->d->size - 1;
 
-	if(zeus_string_to_uint(beg,end,val) == ZEUS_ERROR){
-		zeus_write_log(log,ZEUS_LOG_ERROR,"get timer resolution error");
-		return ZEUS_ERROR;
-	}
+    if(zeus_string_to_uint(beg,end,val) == ZEUS_ERROR){
+        zeus_write_log(log,ZEUS_LOG_ERROR,"get timer resolution error");
+        return ZEUS_ERROR;
+    }
 
-	return ZEUS_OK;
+    return ZEUS_OK;
 
 }
 
 zeus_status_t zeus_config_get_worker(zeus_config_t *config,zeus_log_t *log,zeus_uint_t *val){
 
-	zeus_hash_data_t *hd;
-	zeus_char_t *beg;
-	zeus_char_t *end;
+    zeus_hash_data_t *hd;
+    zeus_char_t *beg;
+    zeus_char_t *end;
 	
-	if(zeus_config_check(config,log,&hd,&zeus_config_worker) == ZEUS_ERROR){
-		return ZEUS_ERROR;
-	}
+    if(zeus_config_check(config,log,&hd,&zeus_config_worker) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
 	
-	beg = hd->d->data;
-	end = hd->d->data + hd->d->size - 1;
+    beg = hd->d->data;
+    end = hd->d->data + hd->d->size - 1;
 
-	if(zeus_string_to_uint(beg,end,val) == ZEUS_ERROR){
-		zeus_write_log(log,ZEUS_LOG_ERROR,"get worker number error");
-		return ZEUS_ERROR;
-	}
+    if(zeus_string_to_uint(beg,end,val) == ZEUS_ERROR){
+        zeus_write_log(log,ZEUS_LOG_ERROR,"get worker number error");
+        return ZEUS_ERROR;
+    }
 
-	return ZEUS_OK;
+    return ZEUS_OK;
 
 }
 
 zeus_status_t zeus_config_get_max_connection(zeus_config_t *config,zeus_log_t *log,zeus_uint_t *connection){
 	
-	zeus_hash_data_t *hd;
-	zeus_char_t *beg;
-	zeus_char_t *end;
+    zeus_hash_data_t *hd;
+    zeus_char_t *beg;
+    zeus_char_t *end;
 	
-	if(zeus_config_check(config,log,&hd,&zeus_config_max_connection) == ZEUS_ERROR){
-		return ZEUS_ERROR;
-	}
+    if(zeus_config_check(config,log,&hd,&zeus_config_max_connection) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
 
-	beg = hd->d->data;
-	end = hd->d->data + hd->d->size - 1;
+    beg = hd->d->data;
+    end = hd->d->data + hd->d->size - 1;
 
-	if(zeus_string_to_uint(beg,end,connection) == ZEUS_ERROR){
-		zeus_write_log(log,ZEUS_LOG_ERROR,"get max connection error");
-		return ZEUS_ERROR;
-	}
+    if(zeus_string_to_uint(beg,end,connection) == ZEUS_ERROR){
+        zeus_write_log(log,ZEUS_LOG_ERROR,"get max connection error");
+        return ZEUS_ERROR;
+    }
 
-	return ZEUS_OK;
+    return ZEUS_OK;
 
 }
 
 zeus_status_t zeus_config_get_port(zeus_config_t *config,zeus_log_t *log,zeus_ushort_t *val){
 
-	zeus_hash_data_t *hd;
-	zeus_char_t *beg;
-	zeus_char_t *end;
+    zeus_hash_data_t *hd;
+    zeus_char_t *beg;
+    zeus_char_t *end;
 	
-	if(zeus_config_check(config,log,&hd,&zeus_config_port) == ZEUS_ERROR){
-		return ZEUS_ERROR;
-	}
+    if(zeus_config_check(config,log,&hd,&zeus_config_port) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
 	
-	beg = hd->d->data;
-	end = hd->d->data + hd->d->size - 1;
+    beg = hd->d->data;
+    end = hd->d->data + hd->d->size - 1;
 
-	if(zeus_string_to_ushort(beg,end,val) == ZEUS_ERROR){
-		zeus_write_log(log,ZEUS_LOG_ERROR,"get worker number error");
-		return ZEUS_ERROR;
-	}
+    if(zeus_string_to_ushort(beg,end,val) == ZEUS_ERROR){
+        zeus_write_log(log,ZEUS_LOG_ERROR,"get worker number error");
+        return ZEUS_ERROR;
+    }
 
-	return ZEUS_OK;
+    return ZEUS_OK;
 
 }
 
@@ -353,98 +353,98 @@ zeus_status_t zeus_config_get_port(zeus_config_t *config,zeus_log_t *log,zeus_us
 
 zeus_status_t zeus_config_get_log_path(zeus_process_t *process){
 	
-	zeus_log_t *alloc_log;
+    zeus_log_t *alloc_log;
 
-	zeus_hash_data_t *hd;
+    zeus_hash_data_t *hd;
 
-	zeus_size_t sz = 0;
+    zeus_size_t sz = 0;
 
-	zeus_uint_t sep = 0;
+    zeus_uint_t sep = 0;
 
-	zeus_char_t *beg;
+    zeus_char_t *beg;
 	
-	if(zeus_config_check(process->config,process->log,&hd,&zeus_config_log) == ZEUS_ERROR){
-		return ZEUS_ERROR;
-	}
+    if(zeus_config_check(process->config,process->log,&hd,&zeus_config_log) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
 	
-	if(zeus_string_equal(process->log->path,hd->d) == 0){
-		process->old = NULL;
-		process->log->level = ZEUS_DEFAULT_LOG_LEVEL;
-		return ZEUS_OK;
-	}
+    if(zeus_string_equal(process->log->path,hd->d) == 0){
+        process->old = NULL;
+        process->log->level = ZEUS_DEFAULT_LOG_LEVEL;
+        return ZEUS_OK;
+    }
 	
-	alloc_log = (zeus_log_t *)zeus_memory_alloc(process->pool,sizeof(zeus_log_t));
-	if(alloc_log == NULL){
-		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log according to config file error");
-		return ZEUS_ERROR;
-	}
+    alloc_log = (zeus_log_t *)zeus_memory_alloc(process->pool,sizeof(zeus_log_t));
+    if(alloc_log == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log according to config file error");
+        return ZEUS_ERROR;
+    }
 
-	alloc_log->level = ZEUS_DEFAULT_LOG_LEVEL;
+    alloc_log->level = ZEUS_DEFAULT_LOG_LEVEL;
 	
-	alloc_log->path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
-	if(alloc_log->path == NULL){
-		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log path error");
-		return ZEUS_ERROR;
-	}
+    alloc_log->path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
+    if(alloc_log->path == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log path error");
+        return ZEUS_ERROR;
+    }
 
-	if(hd->d->size <= 1){
-		zeus_write_log(process->log,ZEUS_LOG_ERROR,"log config size error");
-		return ZEUS_ERROR;
-	}
+    if(hd->d->size <= 1){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"log config size error");
+        return ZEUS_ERROR;
+    }
 
-	sz += (hd->d->size - 1);
-	if(hd->d->data[hd->d->size - 2] == '/'){
-		sep = 1;
-	}else{
-		sep = 0;
-		sz += 1;
-	}
+    sz += (hd->d->size - 1);
+    if(hd->d->data[hd->d->size - 2] == '/'){
+        sep = 1;
+    }else{
+        sep = 0;
+        sz += 1;
+    }
 
-	sz += zeus_strlen(ZEUS_LOG_FILENAME);
-	sz += 1;
+    sz += zeus_strlen(ZEUS_LOG_FILENAME);
+    sz += 1;
 
-	alloc_log->path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * sz);
-	if(alloc_log == NULL){
-		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log path error");
-		return ZEUS_ERROR;
-	}
+    alloc_log->path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * sz);
+    if(alloc_log == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log path error");
+        return ZEUS_ERROR;
+    }
 
-	alloc_log->path->size = sz;
+    alloc_log->path->size = sz;
 	
-	beg = alloc_log->path->data;
+    beg = alloc_log->path->data;
 
-	zeus_memcpy(beg,hd->d->data,hd->d->size - 1);
+    zeus_memcpy(beg,hd->d->data,hd->d->size - 1);
 
-	beg += hd->d->size - 1;
+    beg += hd->d->size - 1;
 
-	if(sep == 0){
-		*beg++ = '/';
-	}
+    if(sep == 0){
+        *beg++ = '/';
+    }
 
-	zeus_memcpy(beg,ZEUS_LOG_FILENAME,zeus_strlen(ZEUS_LOG_FILENAME));
+    zeus_memcpy(beg,ZEUS_LOG_FILENAME,zeus_strlen(ZEUS_LOG_FILENAME));
 
-	beg += zeus_strlen(ZEUS_LOG_FILENAME);
+    beg += zeus_strlen(ZEUS_LOG_FILENAME);
 
-	*beg ++ = '\0';
+    *beg ++ = '\0';
 
-	if((alloc_log->fd = zeus_open_file(alloc_log->path,O_CREAT | O_RDWR | O_APPEND ,\
-					S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) == ZEUS_FILE_OPEN_ERROR){
-		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log file %s error : %s",
-				alloc_log->path->data,strerror(errno));
-		return ZEUS_ERROR;
-	}
+    if((alloc_log->fd = zeus_open_file(alloc_log->path,O_CREAT | O_RDWR | O_APPEND ,\
+                    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) == ZEUS_FILE_OPEN_ERROR){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log file %s error : %s",
+                       alloc_log->path->data,strerror(errno));
+        return ZEUS_ERROR;
+    }
+	    
+    if(zeus_chown_file(alloc_log->path,process) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
+
+    alloc_log->status = ZEUS_LOG_OPEN;
 	
-	if(zeus_chown_file(alloc_log->path,process) == ZEUS_ERROR){
-		return ZEUS_ERROR;
-	}
+    process->old = process->log;
 
-	alloc_log->status = ZEUS_LOG_OPEN;
-	
-	process->old = process->log;
+    process->log = alloc_log;
 
-	process->log = alloc_log;
-
-	return ZEUS_OK;
+    return ZEUS_OK;
 
 }
 
@@ -554,59 +554,59 @@ zeus_status_t zeus_config_gateworker_log_path(zeus_process_t *process){
 
 zeus_status_t zeus_config_get_pid_path(zeus_process_t *process){
 	
-	zeus_hash_data_t *hd;
+    zeus_hash_data_t *hd;
 
-	zeus_char_t *beg;
+    zeus_char_t *beg;
 
-	zeus_size_t sz = 0;
+    zeus_size_t sz = 0;
 
-	zeus_uint_t sep = 0;
+    zeus_uint_t sep = 0;
 
-	if(zeus_config_check(process->config,process->log,&hd,&zeus_config_pid) == ZEUS_ERROR){
-		return ZEUS_ERROR;
-	}
+    if(zeus_config_check(process->config,process->log,&hd,&zeus_config_pid) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
 
-	process->pid_run_flag_path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
-	if(process->pid_run_flag_path == NULL){
-		zeus_write_log(process->log,ZEUS_LOG_ERROR,"create pid file string structure error");
-		return ZEUS_ERROR;
-	}
+    process->pid_run_flag_path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
+    if(process->pid_run_flag_path == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create pid file string structure error");
+        return ZEUS_ERROR;
+    }
 
-	if(hd->d->size <= 1){
-		zeus_write_log(process->log,ZEUS_LOG_ERROR,"pid file configuration error");
-		return ZEUS_ERROR;
-	}
+    if(hd->d->size <= 1){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"pid file configuration error");
+        return ZEUS_ERROR;
+    }
 
-	sz += (hd->d->size - 1);
+    sz += (hd->d->size - 1);
 
-	if(hd->d->data[hd->d->size - 2] == '/'){
-		sep = 1;
-	}else{
-		sep = 0;
-		sz += 1;
-	}
+    if(hd->d->data[hd->d->size - 2] == '/'){
+        sep = 1;
+    }else{
+        sep = 0;
+        sz += 1;
+    }
 
-	sz += zeus_strlen(ZEUS_PID_FILENAME);
-	sz += 1;
+    sz += zeus_strlen(ZEUS_PID_FILENAME);
+    sz += 1;
 
 
-	process->pid_run_flag_path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * sz);
+    process->pid_run_flag_path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * sz);
 	
-	beg = process->pid_run_flag_path->data;
+    beg = process->pid_run_flag_path->data;
 
-	zeus_memcpy(beg,hd->d->data,hd->d->size - 1);
+    zeus_memcpy(beg,hd->d->data,hd->d->size - 1);
 
-	beg += (hd->d->size - 1);
+    beg += (hd->d->size - 1);
 
-	if(sep == 0){
-		*beg++ = '/';
-	}
+    if(sep == 0){
+        *beg++ = '/';
+    }
 
-	zeus_memcpy(beg,ZEUS_PID_FILENAME,zeus_strlen(ZEUS_PID_FILENAME));
+    zeus_memcpy(beg,ZEUS_PID_FILENAME,zeus_strlen(ZEUS_PID_FILENAME));
 
-	beg += zeus_strlen(ZEUS_PID_FILENAME);
+    beg += zeus_strlen(ZEUS_PID_FILENAME);
 
-	*beg++ = '\0';
+    *beg++ = '\0';
 
-	return ZEUS_OK;
+    return ZEUS_OK;
 }
