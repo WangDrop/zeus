@@ -379,17 +379,17 @@ zeus_status_t zeus_prepare_loop(zeus_process_t *p,zeus_idx_t idx){
 
 	
     if(!zeus_refork){
-	    for(i = 0 ; i < p->worker + 1 ; ++ i){
-		    if(i == p->pidx){
-			    if(close(p->channel[i][1]) == -1){
-				    zeus_write_log(p->log,ZEUS_LOG_ERROR,"close own write channel error : %s",strerror(errno));
-			    }
-		    }else{
-			    if(close(p->channel[i][0]) == -1){
-				    zeus_write_log(p->log,ZEUS_LOG_ERROR,"close other read channel error : %s",strerror(errno));
-			    }
-		    }
-	    }
+        for(i = 0 ; i < p->worker + 1 ; ++ i){
+            if(i == p->pidx){
+                if(close(p->channel[i][1]) == -1){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"close own write channel error : %s",strerror(errno));
+                }
+            }else{
+                if(close(p->channel[i][0]) == -1){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"close other read channel error : %s",strerror(errno));
+                }
+            }
+        }
     }
 
     if(p->pidx == 0){
