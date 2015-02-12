@@ -14,8 +14,9 @@
 typedef zeus_status_t (zeus_event_handler)(zeus_event_t *);
 typedef int zeus_event_rw_flag_t;
 
-#define ZEUS_EVENT_ON 1
-#define ZEUS_EVENT_OFF 0
+#define ZEUS_EVENT_ON 0x1
+#define ZEUS_EVENT_OFF 0x0
+#define ZEUS_EVENT_CNT 0xa
 
 struct zeus_event_s{
 

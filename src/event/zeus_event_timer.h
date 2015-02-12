@@ -17,6 +17,9 @@
 #define ZEUS_EVENT_TIMER_GT 1
 #define ZEUS_EVENT_TIMER_LT -1
 
+#define ZEUS_EVENT_TIMER_S_TO_MS 1000
+#define ZEUS_EVENT_TIMER_MS_TO_US 1000
+
 struct zeus_event_timer_rbnode_s{
 
     zeus_event_timer_rbnode_t *lchild;

@@ -87,6 +87,15 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
     
     zeus_timeval_t nt;
     zeus_event_timer_rbnode_t *tnode;
+    zeus_itimerval_t itimer;
+
+
+    zeus_epoll_event_t *loopev;
+    zeus_int_t nev;
+    zeus_int_t terrno;
+    zeus_int_t tidx;
+    zeus_connection_t *tconn;
+
 
     if(zeus_event_loop_init_signal(p) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process init loop signal error",\
@@ -113,21 +122,74 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
                       (p->pidx)?"worker":"gateway");
     }
 
+    if((loopev = (zeus_epoll_event_t *)zeus_memory_alloc(p->pool,\
+                 sizeof(zeus_epoll_event_t) * ZEUS_EVENT_CNT)) == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process alloc loop event error",\
+                      (p->pidx)?"worker":"gateway");
+    }
+
+    itimer.it_interval.tv_sec = 0;
+    itimer.it_interval.tv_usec = 0;
+
     for(;;){ 
         
         if(zeus_quit == 1 || zeus_segv == 1){
             exit(0);
         }
+        
+        itimer.it_value.tv_sec = p->resolution / ZEUS_EVENT_TIMER_S_TO_MS;
+        itimer.it_value.tv_usec = (p->resolution % ZEUS_EVENT_TIMER_S_TO_MS) * ZEUS_EVENT_TIMER_MS_TO_US;
+
+        if(setitimer(ITIMER_REAL,&itimer,NULL) == -1){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process setitimer error : %s",\
+                          (p->pidx)?"worker":"gateway",strerror(errno));
+            continue;
+        }
+
+        zeus_write_log(p->log,ZEUS_LOG_NOTICE,"huanxing");
+      
+
+        if((nev = epoll_wait(p->epfd,loopev,ZEUS_EVENT_CNT,-1)) >= 0){
+            
+            for(tidx = 0 ; tidx < nev ; ++ tidx){
+                
+                tconn = (zeus_connection_t *)(loopev[tidx].data.ptr);
+
+                if(loopev[tidx].events & EPOLLOUT){
+                    tconn->wr->handler(tconn->wr);
+                }
+
+                if(loopev[tidx].events & EPOLLIN){
+                    tconn->rd->handler(tconn->rd);
+                }
+            
+            }
+        
+        }else{
+
+            terrno = errno;
+
+            if(terrno == EINTR){
+                //
+            }else{
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process epoll_wait error : %s",\
+                              (p->pidx)?"worker":"gateway",strerror(terrno));
+            }
+        
+        }
+        
 
         if(gettimeofday(&nt,NULL) == -1){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"get current time error");
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process gets current time error : %s",\
+                          (p->pidx)?"worker":"gateway",strerror(errno));
             continue;
         }
 
         while((tnode = zeus_event_timer_rbtree_find_next(p->timer,p->timer->root)) != p->timer->nil){
             if(zeus_event_timer_rbtree_key_compare(&nt,&tnode->t) == ZEUS_EVENT_TIMER_GT){
                 if(zeus_event_timer_rbtree_delete(p->timer,tnode) != ZEUS_OK){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"delete timer tree node error");
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process deletes timer tree node error",\
+                                  (p->pidx)?"worker":"gateway");
                     continue;
                 }else{
                     tnode->ev->timeout = ZEUS_EVENT_OFF;
@@ -138,9 +200,9 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
             } 
         }
 
-
-
     }
+    
+    return ZEUS_OK;
 
 }
 

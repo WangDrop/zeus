@@ -34,6 +34,7 @@ typedef unsigned int zeus_uint_t;
 typedef sig_atomic_t zeus_sig_atomic_t;
 typedef size_t zeus_size_t;
 typedef struct timeval zeus_timeval_t;
+typedef struct itimerval zeus_itimerval_t;
 typedef char zeus_char_t;
 typedef int zeus_int_t;
 typedef int zeus_fd_t;
