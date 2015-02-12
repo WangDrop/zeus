@@ -85,7 +85,7 @@ zeus_status_t zeus_master_event_loop(zeus_process_t *p){
 
 zeus_status_t zeus_event_loop(zeus_process_t *p){
     
-    struct timeval nt;
+    zeus_timeval_t nt;
     zeus_event_timer_rbnode_t *tnode;
 
     if(zeus_event_loop_init_signal(p) == ZEUS_ERROR){
@@ -113,9 +113,32 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
                       (p->pidx)?"worker":"gateway");
     }
 
-    while(1){ 
-    
-        pause();
+    for(;;){ 
+        
+        if(zeus_quit == 1 || zeus_segv == 1){
+            exit(0);
+        }
+
+        if(gettimeofday(&nt,NULL) == -1){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"get current time error");
+            continue;
+        }
+
+        while((tnode = zeus_event_timer_rbtree_find_next(p->timer,p->timer->root)) != p->timer->nil){
+            if(zeus_event_timer_rbtree_key_compare(&nt,&tnode->t) == ZEUS_EVENT_TIMER_GT){
+                if(zeus_event_timer_rbtree_delete(p->timer,tnode) != ZEUS_OK){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"delete timer tree node error");
+                    continue;
+                }else{
+                    tnode->ev->timeout = ZEUS_EVENT_OFF;
+                    tnode->ev->timeout_rbnode = NULL;
+                    tnode->ev->handler(tnode->ev);
+                    zeus_event_timer_rbnode_recycle(p->timer,tnode);
+                }
+            } 
+        }
+
+
 
     }
 

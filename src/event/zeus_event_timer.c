@@ -7,7 +7,6 @@
 
 #include "zeus_event_timer.h"
 
-static zeus_int_t zeus_event_timer_rbtree_key_compare(zeus_timeval_t *,zeus_timeval_t *);
 static zeus_status_t zeus_event_timer_rbtree_lrotate(zeus_event_timer_rbtree_t *,\
                                                      zeus_event_timer_rbnode_t *);
 static zeus_status_t zeus_event_timer_rbtree_rrotate(zeus_event_timer_rbtree_t *,\
@@ -66,6 +65,8 @@ zeus_status_t zeus_event_timer_rbtree_construct(zeus_process_t *p){
 
     p->timer->nil->color = ZEUS_EVENT_TIMER_BLACK;
     p->timer->root = p->timer->nil;
+
+    p->timer->recycle_rbnode = NULL;
     
     return ZEUS_OK;
 
@@ -305,8 +306,6 @@ zeus_status_t zeus_event_timer_rbtree_delete(zeus_event_timer_rbtree_t *t,\
         y->lchild->parent = y;
         y->color = z->color;
 
-        // recycle z here , object pool;
-    
     }
     
     if(y_origin_color == ZEUS_EVENT_TIMER_BLACK){
@@ -392,6 +391,9 @@ zeus_status_t zeus_event_timer_rbtree_delete_fixup(zeus_event_timer_rbtree_t *t,
 zeus_event_timer_rbnode_t *zeus_event_timer_rbtree_find_next(zeus_event_timer_rbtree_t *t,\
                                                              zeus_event_timer_rbnode_t *z){
     
+    if(z == t->nil){
+        return z;
+    }
 
     while(z->lchild != t->nil){
         z = z->lchild;
@@ -403,8 +405,8 @@ zeus_event_timer_rbnode_t *zeus_event_timer_rbtree_find_next(zeus_event_timer_rb
 
 /* Just for debug */
 void zeus_event_timer_rbtree_travel(zeus_event_timer_rbtree_t *t,\
-                                             zeus_event_timer_rbnode_t *p,\
-                                             zeus_log_t *log){
+                                    zeus_event_timer_rbnode_t *p,\
+                                    zeus_log_t *log){
 
     if(p == t->nil){
         return ;      
@@ -415,5 +417,22 @@ void zeus_event_timer_rbtree_travel(zeus_event_timer_rbtree_t *t,\
     zeus_event_timer_rbtree_travel(t,p->rchild,log);
 
     return ;
+
+}
+
+/* For object pool */
+
+zeus_status_t zeus_event_timer_rbnode_recycle(zeus_event_timer_rbtree_t *t,\
+                                              zeus_event_timer_rbnode_t *z){
+    
+    z->lchild = NULL;
+    z->rchild = NULL;
+    
+    z->ev = NULL;   
+
+    z->parent = t->recycle_rbnode;
+    t->recycle_rbnode = z;
+
+    return ZEUS_OK;
 
 }
