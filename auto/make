@@ -3,6 +3,32 @@
 # Generate Makefile
 # 2015-01-11
 
+zeus_file_dependency_generate_(){
+
+    for headerfile in $1
+    do
+        tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
+        tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
+        echo "$tmp_dependency_=zeus_common.h $headerfile.h $headerfile.c"
+        echo "$tmp_command_=$headerfile.c"
+        echo 
+    done
+
+}
+
+zeus_file_compiler_generate_(){
+
+    for headerfile in $1
+    do
+        tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
+        tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
+        echo "$headerfile.o:\$($tmp_dependency_)"
+        echo -e -n "\t"
+        echo "cc -c \$($2)/\$($tmp_command_) -o $BUILD_DIR/$headerfile.o"
+        echo 
+    done
+
+}
 
 echo
 echo "Generate Makefile ... "
@@ -32,32 +58,10 @@ echo "VPATH=\$(SOURCE_CORE_DIR):\$(SOURCE_EVENT_DIR):\$(SOURCE_PROTO_DIR):$BUILD
 echo
 
 
+zeus_file_dependency_generate_ "$ZEUS_SRC_CORE_CHECK_FILE"
+zeus_file_dependency_generate_ "$ZEUS_SRC_EVENT_CHECK_FILE"
+zeus_file_dependency_generate_ "$ZEUS_SRC_PROTO_CHECK_FILE"
 
-for headerfile in $ZEUS_SRC_CORE_CHECK_FILE
-do
-    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
-    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
-    echo "$tmp_dependency_=zeus_common.h $headerfile.h $headerfile.c"
-    echo "$tmp_command_=$headerfile.c"
-    echo 
-done
-
-for headerfile in $ZEUS_SRC_EVENT_CHECK_FILE
-do
-    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
-    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
-    echo "$tmp_dependency_=zeus_common.h $headerfile.h $headerfile.c"
-    echo "$tmp_command_=$headerfile.c"
-    echo 
-done
-
-for headerfile in $ZEUS_SRC_PROTO_CHECK_FILE
-do
-    tmp_dependecy_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
-    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
-    echo "$tmp_dependecy_=zeus_common.h $headerfile.h $headerfile.c"
-    echo "$tmp_command_=$headerfile.c"
-done
 
 echo
 
@@ -99,37 +103,9 @@ done
 echo " -o zeus"
 echo
 
-
-
-for headerfile in $ZEUS_SRC_CORE_CHECK_FILE
-do
-    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
-    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
-    echo "$headerfile.o:\$($tmp_dependency_)"
-    echo -e -n "\t"
-    echo "cc -c \$(SOURCE_CORE_DIR)/\$($tmp_command_) -o $BUILD_DIR/$headerfile.o"
-    echo 
-done
-
-for headerfile in $ZEUS_SRC_EVENT_CHECK_FILE
-do
-    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
-    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
-    echo "$headerfile.o:\$($tmp_dependency_)"
-    echo -e -n "\t"
-    echo "cc -c \$(SOURCE_EVENT_DIR)/\$($tmp_command_) -o $BUILD_DIR/$headerfile.o"
-    echo 
-done
-
-for headerfile in $ZEUS_SRC_PROTO_CHECK_FILE
-do
-    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
-    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
-    echo "$headerfile.o:\$(tmp_dependecy_)"
-    echo -e -n "\t"
-    echo "cc -c \$(SOURCE_PROTO_DIR)/\$($tmp_command_) -o $BUILD_DIR/$headerfile.o"
-    echo
-done
+zeus_file_compiler_generate_ "$ZEUS_SRC_CORE_CHECK_FILE" "SOURCE_CORE_DIR"
+zeus_file_compiler_generate_ "$ZEUS_SRC_EVENT_CHECK_FILE" "SOURCE_EVENT_DIR"
+zeus_file_compiler_generate_ "$ZEUS_SRC_PROTO_CHECK_FILE" "SOURCE_PROTO_DIR"
 
 
 echo
