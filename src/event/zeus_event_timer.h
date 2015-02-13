@@ -26,7 +26,7 @@ struct zeus_event_timer_rbnode_s{
     zeus_event_timer_rbnode_t *rchild;
     zeus_event_timer_rbnode_t *parent;
     zeus_event_t *ev;
-    zeus_event_timer_color color;
+    zeus_event_timer_color_t color;
     zeus_timeval_t t;
 
 };

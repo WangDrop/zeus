@@ -146,8 +146,6 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
             continue;
         }
 
-        zeus_write_log(p->log,ZEUS_LOG_NOTICE,"huanxing");
-      
 
         if((nev = epoll_wait(p->epfd,loopev,ZEUS_EVENT_CNT,-1)) >= 0){
             
@@ -156,11 +154,11 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
                 tconn = (zeus_connection_t *)(loopev[tidx].data.ptr);
 
                 if(loopev[tidx].events & EPOLLOUT){
-                    tconn->wr->handler(tconn->wr);
+                    tconn->wr->handler(p,tconn->wr);
                 }
 
                 if(loopev[tidx].events & EPOLLIN){
-                    tconn->rd->handler(tconn->rd);
+                    tconn->rd->handler(p,tconn->rd);
                 }
             
             }
@@ -194,7 +192,7 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
                 }else{
                     tnode->ev->timeout = ZEUS_EVENT_OFF;
                     tnode->ev->timeout_rbnode = NULL;
-                    tnode->ev->handler(tnode->ev);
+                    tnode->ev->handler(p,tnode->ev);
                     zeus_event_timer_rbnode_recycle(p->timer,tnode);
                 }
             } 
@@ -296,7 +294,6 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         conn->rd = ev;
         conn->rdstatus = ZEUS_EVENT_ON;
         ev->handler = zeus_event_io_accept;
-        ev->timeout = ZEUS_EVENT_OFF;
 
         node->d = (void *)conn;
         
@@ -334,7 +331,6 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
     conn->rdstatus = ZEUS_EVENT_ON;
     ev->connection = conn;
     ev->handler = zeus_event_io_read;
-    ev->timeout = ZEUS_EVENT_OFF;
 
     node->d = (void *)conn;
 

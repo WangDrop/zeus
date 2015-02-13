@@ -24,6 +24,10 @@ struct zeus_connection_s{
 
     zeus_event_status_t wrstatus;
 
+    zeus_sockaddr_in_t *peer;
+
+    zeus_socklen_t *peerlen;
+
 };
 
 

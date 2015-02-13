@@ -11,7 +11,7 @@
 
 #include "../core/zeus_common.h"
 
-typedef zeus_status_t (zeus_event_handler)(zeus_event_t *);
+typedef zeus_status_t (zeus_event_handler)(zeus_process_t *,zeus_event_t *);
 typedef int zeus_event_rw_flag_t;
 
 #define ZEUS_EVENT_ON 0x1

@@ -25,6 +25,9 @@ zeus_connection_t *zeus_create_connection_node(zeus_process_t *process){
     alloc_connection->rdstatus = ZEUS_EVENT_OFF;
     alloc_connection->wrstatus = ZEUS_EVENT_OFF;
 
+    alloc_connection->peer = NULL;
+    alloc_connection->peerlen = NULL;
+
     return alloc_connection;
 
 }

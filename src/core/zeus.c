@@ -412,7 +412,7 @@ zeus_status_t zeus_gateway_prepare_listen(zeus_process_t *p){
 	
     int reuse_flag = 1;
 
-    struct sockaddr_in addr;
+    zeus_sockaddr_in_t addr;
 
     if((p->listenfd = socket(AF_INET,SOCK_STREAM,0)) == -1){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway create listen file descriptor error : %s",strerror(errno));
@@ -433,7 +433,7 @@ zeus_status_t zeus_gateway_prepare_listen(zeus_process_t *p){
     addr.sin_port = htons(p->port);
     addr.sin_addr.s_addr = INADDR_ANY;
 
-    if(bind(p->listenfd,(struct sockaddr *)&addr,sizeof(addr)) == -1){
+    if(bind(p->listenfd,(zeus_sockaddr_t *)&addr,sizeof(addr)) == -1){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway bind error : %s",strerror(errno));
         return ZEUS_ERROR;
     }

@@ -49,7 +49,10 @@ typedef int zeus_idx_t;
 typedef sig_atomic_t zeus_atomic_t;
 typedef unsigned long zeus_event_status_t;
 typedef struct epoll_event zeus_epoll_event_t;
-typedef unsigned int zeus_event_timer_color;
+typedef unsigned int zeus_event_timer_color_t;
+typedef struct sockaddr zeus_sockaddr_t;
+typedef struct sockaddr_in zeus_sockaddr_in_t;
+typedef socklen_t zeus_socklen_t;
 
 #define ZEUS_OK 0x0
 #define ZEUS_ERROR 0x1
@@ -93,6 +96,8 @@ typedef struct zeus_event_timer_rbtree_s zeus_event_timer_rbtree_t;
 #include "../event/zeus_event_io.h"
 #include "../event/zeus_event_timer.h"
 #include "../event/zeus_event_helper.h"
+
+#include "../proto/zeus_proto.h"
 
 #define ZEUS_DEFAULT_LOG_LEVEL ZEUS_LOG_NOTICE
 #define ZEUS_LOG_FILENAME "zeus.log"

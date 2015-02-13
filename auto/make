@@ -23,12 +23,12 @@ exec 1>"Makefile"
 
 echo "SOURCE_CORE_DIR=$SRC_DIR/$CORE_DIR"
 echo "SOURCE_EVENT_DIR=$SRC_DIR/$EVENT_DIR"
-echo "SOURCE_LOGIC_DIR=$SRC_DIR/$LOGIC_DIR"
+echo "SOURCE_PROTO_DIR=$SRC_DIR/$PROTO_DIR"
 echo
 
 
 
-echo "VPATH=\$(SOURCE_CORE_DIR):\$(SOURCE_EVENT_DIR):\$(SOURCE_LOGIC_DIR):$BUILD_DIR"
+echo "VPATH=\$(SOURCE_CORE_DIR):\$(SOURCE_EVENT_DIR):\$(SOURCE_PROTO_DIR):$BUILD_DIR"
 echo
 
 
@@ -51,7 +51,15 @@ do
     echo 
 done
 
+for headerfile in $ZEUS_SRC_PROTO_CHECK_FILE
+do
+    tmp_dependecy_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
+    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
+    echo "$tmp_dependecy_=zeus_common.h $headerfile.h $headerfile.c"
+    echo "$tmp_command_=$headerfile.c"
+done
 
+echo
 
 
 echo -n "ALL_OBJ="
@@ -61,6 +69,10 @@ do
     echo -n "$headerfile.o "
 done
 for headerfile in $ZEUS_SRC_EVENT_CHECK_FILE
+do
+    echo -n "$headerfile.o "
+done
+for headerfile in $ZEUS_SRC_PROTO_CHECK_FILE
 do
     echo -n "$headerfile.o "
 done
@@ -77,6 +89,10 @@ do
     echo -n " $BUILD_DIR/$headerfile.o"
 done
 for headerfile in $ZEUS_SRC_EVENT_CHECK_FILE
+do
+    echo -n " $BUILD_DIR/$headerfile.o"
+done
+for headerfile in $ZEUS_SRC_PROTO_CHECK_FILE
 do
     echo -n " $BUILD_DIR/$headerfile.o"
 done
@@ -103,6 +119,16 @@ do
     echo -e -n "\t"
     echo "cc -c \$(SOURCE_EVENT_DIR)/\$($tmp_command_) -o $BUILD_DIR/$headerfile.o"
     echo 
+done
+
+for headerfile in $ZEUS_SRC_PROTO_CHECK_FILE
+do
+    tmp_dependency_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_DEPENDENCY
+    tmp_command_=$(echo $headerfile | sed -e 's/^zeus_//g' | tr [a-z] [A-Z])_COMMAND
+    echo "$headerfile.o:\$(tmp_dependecy_)"
+    echo -e -n "\t"
+    echo "cc -c \$(SOURCE_PROTO_DIR)/\$($tmp_command_) -o $BUILD_DIR/$headerfile.o"
+    echo
 done
 
 
