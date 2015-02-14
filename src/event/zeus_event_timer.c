@@ -20,12 +20,18 @@ static zeus_status_t zeus_event_timer_rbtree_transplant(zeus_event_timer_rbtree_
 static zeus_status_t zeus_event_timer_rbtree_delete_fixup(zeus_event_timer_rbtree_t *,\
                                                           zeus_event_timer_rbnode_t *);
 
+static zeus_event_timer_rbnode_t *zeus_get_event_timer_rbnode_from_pool(zeus_event_timer_rbtree_t *);
+
+
 zeus_event_timer_rbnode_t *zeus_event_timer_create_rbnode(zeus_process_t *p){
     
     zeus_event_timer_rbnode_t *alloc_rbnode;
-    
-    // consider the object pool here
 
+    if(p->timer->rbnode_pool){
+        alloc_rbnode = zeus_get_event_timer_rbnode_from_pool(p->timer);
+        return alloc_rbnode;
+    }
+    
     alloc_rbnode = (zeus_event_timer_rbnode_t *)zeus_memory_alloc(p->pool,\
                                          sizeof(zeus_event_timer_rbnode_t));
 
@@ -66,7 +72,7 @@ zeus_status_t zeus_event_timer_rbtree_construct(zeus_process_t *p){
     p->timer->nil->color = ZEUS_EVENT_TIMER_BLACK;
     p->timer->root = p->timer->nil;
 
-    p->timer->recycle_rbnode = NULL;
+    p->timer->rbnode_pool = NULL;
     
     return ZEUS_OK;
 
@@ -422,16 +428,28 @@ void zeus_event_timer_rbtree_travel(zeus_event_timer_rbtree_t *t,\
 
 /* For object pool */
 
-zeus_status_t zeus_event_timer_rbnode_recycle(zeus_event_timer_rbtree_t *t,\
-                                              zeus_event_timer_rbnode_t *z){
+zeus_event_timer_rbnode_t *zeus_get_event_timer_rbnode_from_pool(zeus_event_timer_rbtree_t *t){
+
+    zeus_event_timer_rbnode_t *z;
+    
+    z = t->rbnode_pool;
+    t->rbnode_pool = z->parent;
+    z->parent = NULL;
+
+    return z;
+
+}
+
+zeus_status_t zeus_recycle_event_timer_rbnode_to_pool(zeus_event_timer_rbtree_t *t,\
+                                                      zeus_event_timer_rbnode_t *z){
     
     z->lchild = NULL;
     z->rchild = NULL;
     
     z->ev = NULL;   
 
-    z->parent = t->recycle_rbnode;
-    t->recycle_rbnode = z;
+    z->parent = t->rbnode_pool;
+    t->rbnode_pool = z;
 
     return ZEUS_OK;
 

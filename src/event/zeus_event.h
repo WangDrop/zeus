@@ -22,12 +22,14 @@ struct zeus_event_s{
 
     zeus_connection_t *connection;
 
-    zeus_list_t *buffer;
+    zeus_list_data_t *buffer;
 
     zeus_event_handler *handler;
 
     zeus_event_timer_rbnode_t *timeout_rbnode;
 
+    zeus_event_handler *timeout_handler;
+    
     zeus_event_status_t timeout;
 
 };

@@ -8,7 +8,7 @@
 #include "zeus_buffer.h"
 
 //get from buffer pool.
-static zeus_list_data_t *zeus_get_buffer_list_node_from_recycle(zeus_process_t *process);
+static zeus_list_data_t *zeus_get_buffer_list_node_from_pool(zeus_process_t *process);
 
 zeus_list_data_t *zeus_create_buffer_list_node(zeus_process_t *process){
 
@@ -17,7 +17,7 @@ zeus_list_data_t *zeus_create_buffer_list_node(zeus_process_t *process){
     void *alloc_b = NULL;
 
     if(process->buffer_pool){
-        alloc_node = zeus_get_buffer_list_node_from_recycle(process);
+        alloc_node = zeus_get_buffer_list_node_from_pool(process);
         return alloc_node;
     }
 
@@ -50,15 +50,28 @@ zeus_list_data_t *zeus_create_buffer_list_node(zeus_process_t *process){
 
 }
 
-zeus_list_data_t *zeus_get_buffer_list_node_from_recycle(zeus_process_t *process){
+zeus_list_data_t *zeus_get_buffer_list_node_from_pool(zeus_process_t *process){
     
     zeus_list_data_t *p = NULL;
 
     p = process->buffer_pool;
     process->buffer_pool = p->next;
-
     p->next = NULL;
-    ((zeus_buffer_t *)(p->d))->current = ((zeus_buffer_t *)(p->d))->end  = ((zeus_buffer_t *)(p->d))->start;
 
     return p;
+
+}
+
+zeus_status_t zeus_recycle_buffer_list_node_to_pool(zeus_process_t *process,zeus_list_data_t *z){
+    
+    zeus_buffer_t *p;
+
+    p = (zeus_buffer_t *)(z->d);
+    p->current = p->start;
+    
+    z->next = process->buffer_pool;
+    process->buffer_pool = z;
+    
+    return ZEUS_OK;
+
 }

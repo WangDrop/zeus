@@ -35,8 +35,7 @@ struct zeus_event_timer_rbtree_s{
     
     zeus_event_timer_rbnode_t *nil;
     zeus_event_timer_rbnode_t *root;
-
-    zeus_event_timer_rbnode_t *recycle_rbnode;
+    zeus_event_timer_rbnode_t *rbnode_pool;
 
 };
 
@@ -59,6 +58,7 @@ zeus_int_t zeus_event_timer_rbtree_key_compare(zeus_timeval_t *,zeus_timeval_t *
 
 
 /* For object pool */
-zeus_status_t zeus_event_timer_rbnode_recycle(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
+
+zeus_status_t zeus_recycle_event_timer_rbnode_to_pool(zeus_event_timer_rbtree_t *,zeus_event_timer_rbnode_t *);
 
 #endif
