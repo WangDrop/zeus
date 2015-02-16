@@ -19,9 +19,9 @@ struct zeus_config_s{
 
 };
 
-zeus_config_t *zeus_create_config(zeus_memory_pool_t *);
-zeus_status_t zeus_init_config(zeus_config_t *,zeus_memory_pool_t *);
-zeus_status_t zeus_parse_config_line(zeus_char_t *,zeus_int_t ,zeus_config_t *,zeus_memory_pool_t *);
+zeus_config_t *zeus_create_config(zeus_process_t *);
+zeus_status_t zeus_init_config(zeus_process_t *);
+zeus_status_t zeus_parse_config_line(zeus_char_t *,zeus_int_t ,zeus_process_t *);
 void zeus_log_config(zeus_config_t *,zeus_log_t *);
 
 zeus_status_t zeus_config_check(zeus_config_t *,zeus_log_t *,zeus_hash_data_t **,zeus_string_t *);

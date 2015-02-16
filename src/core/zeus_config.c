@@ -11,19 +11,19 @@
 #define ZEUS_CONFIG_LINE_MAX 2048
 #define ZEUS_CONFIG_LOG_PATH_MAX 2048
 
-static zeus_string_t zeus_config_uid = {"user",sizeof("user")};
-static zeus_string_t zeus_config_gid = {"group",sizeof("group")};
-static zeus_string_t zeus_config_prefix = {"prefix",sizeof("prefix")};
-static zeus_string_t zeus_config_log = {"log",sizeof("log")};
-static zeus_string_t zeus_config_pid = {"pid",sizeof("pid")};
-static zeus_string_t zeus_config_port = {"port",sizeof("port")};
-static zeus_string_t zeus_config_worker = {"worker",sizeof("worker")};
-static zeus_string_t zeus_config_timer = {"timer",sizeof("timer")};
-static zeus_string_t zeus_config_max_connection = {"connection",sizeof("connection")};
+static zeus_string_t zeus_config_uid = {(zeus_char_t *)"user",sizeof("user")};
+static zeus_string_t zeus_config_gid = {(zeus_char_t *)"group",sizeof("group")};
+static zeus_string_t zeus_config_prefix = {(zeus_char_t *)"prefix",sizeof("prefix")};
+static zeus_string_t zeus_config_log = {(zeus_char_t *)"log",sizeof("log")};
+static zeus_string_t zeus_config_pid = {(zeus_char_t *)"pid",sizeof("pid")};
+static zeus_string_t zeus_config_port = {(zeus_char_t *)"port",sizeof("port")};
+static zeus_string_t zeus_config_worker = {(zeus_char_t *)"worker",sizeof("worker")};
+static zeus_string_t zeus_config_timer = {(zeus_char_t *)"timer",sizeof("timer")};
+static zeus_string_t zeus_config_max_connection = {(zeus_char_t *)"connection",sizeof("connection")};
 
-static zeus_string_t zeus_log_filename = {"zeus.log",sizeof("zeus.log")};
+static zeus_string_t zeus_log_filename = {(zeus_char_t *)"zeus.log",sizeof("zeus.log")};
 
-zeus_config_t *zeus_create_config(zeus_memory_pool_t *pool){
+zeus_config_t *zeus_create_config(zeus_process_t *process){
     
     zeus_size_t nwrite;
     zeus_config_t *alloc_config;
@@ -32,10 +32,10 @@ zeus_config_t *zeus_create_config(zeus_memory_pool_t *pool){
     zeus_char_t *beg = tmp_config_path;
     zeus_char_t *end = tmp_config_path + ZEUS_CONFIG_PATH_MAX - 1;
 
-    alloc_config = (zeus_config_t *)zeus_memory_alloc(pool,sizeof(zeus_config_t));
+    alloc_config = (zeus_config_t *)zeus_memory_alloc(process->pool,sizeof(zeus_config_t));
 
     if(alloc_config == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc config structure error");
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"alloc config structure error");
         return NULL;
     }
 
@@ -43,25 +43,17 @@ zeus_config_t *zeus_create_config(zeus_memory_pool_t *pool){
     beg = (beg + nwrite < end) ? (beg + nwrite) : end;
     ++ beg;
 
-    alloc_config->path = (zeus_string_t *)zeus_memory_alloc(pool,sizeof(zeus_string_t));
-    if(alloc_config->path == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc configuration file path string structure error");
+    alloc_config->path = zeus_create_string(process,(zeus_size_t)(beg - tmp_config_path));
+    if(alloc_config == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"alloc configuration file path structure error");
         return NULL;
     }
-
-    alloc_config->path->size = (zeus_size_t)(beg - tmp_config_path);
-
-    alloc_config->path->data = (zeus_char_t *)zeus_memory_alloc(pool,alloc_config->path->size);
-    if(alloc_config->path->data == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc configuration file path string data error");
-        return NULL;
-    }
-
+    
     zeus_memcpy(alloc_config->path->data,tmp_config_path,alloc_config->path->size);
     
-    alloc_config->conf = zeus_create_hash_table(pool);
+    alloc_config->conf = zeus_create_hash_table(process->pool);
     if(alloc_config->conf == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"get config hash table error");
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"get config hash table error");
         return NULL;
     }
 
@@ -69,14 +61,15 @@ zeus_config_t *zeus_create_config(zeus_memory_pool_t *pool){
 
 }
 
-zeus_status_t zeus_init_config(zeus_config_t *config,zeus_memory_pool_t *pool){
+zeus_status_t zeus_init_config(zeus_process_t *process){
     
     FILE *fp;
     zeus_size_t sz;
     zeus_char_t line[ZEUS_CONFIG_LINE_MAX];
-
-    if((fp = fopen(config->path->data,"r")) == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"open configuration file %s error : %s",config->path->data,strerror(errno));
+    
+    if((fp = fopen(process->config->path->data,"r")) == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"open configuration file %s error : %s",\
+                       process->config->path->data,strerror(errno));
         return ZEUS_ERROR;
     }
 
@@ -90,11 +83,11 @@ zeus_status_t zeus_init_config(zeus_config_t *config,zeus_memory_pool_t *pool){
         
         //last line
         if(line[sz - 1] != '\n'){
-            if(zeus_parse_config_line(line,sz,config,pool) == ZEUS_ERROR){
+            if(zeus_parse_config_line(line,sz,process) == ZEUS_ERROR){
                 return ZEUS_ERROR;
             }
         }else{
-            if(zeus_parse_config_line(line,sz - 1,config,pool) == ZEUS_ERROR){
+            if(zeus_parse_config_line(line,sz - 1,process) == ZEUS_ERROR){
                 return ZEUS_ERROR;
             }
         }
@@ -109,7 +102,7 @@ zeus_status_t zeus_init_config(zeus_config_t *config,zeus_memory_pool_t *pool){
 
 }
 
-zeus_status_t zeus_parse_config_line(zeus_char_t *line,zeus_int_t nread,zeus_config_t *config,zeus_memory_pool_t *pool){
+zeus_status_t zeus_parse_config_line(zeus_char_t *line,zeus_int_t nread,zeus_process_t *process){
     
     zeus_int_t idx;
     zeus_string_t *s;
@@ -131,57 +124,48 @@ zeus_status_t zeus_parse_config_line(zeus_char_t *line,zeus_int_t nread,zeus_con
     }
 
     if(idx == 0){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"config item has no name");
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"config item has no name");
         return ZEUS_ERROR;
     }else if(idx == nread - 1){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"config item has no value");
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"config item has no value");
         return ZEUS_ERROR;
     }else if(idx == nread){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"config item has no =");
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"config item has no =");
         return ZEUS_ERROR;
     }
-    
-    s = (zeus_string_t *)zeus_memory_alloc(pool,sizeof(zeus_string_t));
+
+    s = zeus_create_string(process,idx + 1);
     if(s == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc config item error");
-        return ZEUS_ERROR;
-    }
-    s->size = idx + 1;
-    s->data = (zeus_char_t *)zeus_memory_alloc(pool,s->size);
-    if(s->data == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc config item error");
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create config hash key string error");
         return ZEUS_ERROR;
     }
     zeus_memcpy(s->data,line,idx);
     s->data[s->size - 1] = '\0';
 
-    
-    d = (zeus_string_t *)zeus_memory_alloc(pool,sizeof(zeus_string_t));
+
+    d = zeus_create_string(process,nread - idx);
     if(d == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc config item error");
-        return ZEUS_ERROR;
-    }
-    d->size = nread - idx;
-    d->data = (zeus_char_t *)zeus_memory_alloc(pool,d->size);
-    if(d->data == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"alloc config item error");
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create config hash value string error");
         return ZEUS_ERROR;
     }
     zeus_memcpy(d->data,&line[idx + 1],d->size - 1);
     d->data[d->size - 1] = '\0';
 
-    node = zeus_get_hash_data_node(pool);
+
+    node = zeus_get_hash_data_node(process->pool);
     if(node == NULL){
-        zeus_write_log(pool->log,ZEUS_LOG_ERROR,"get config data node error");
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"get config data node error");
         return ZEUS_ERROR;
     }
 
     node->s = s;
     node->d = d;
 
-    zeus_insert_hash_data_node(config->conf,node);
+
+    zeus_insert_hash_data_node(process->config->conf,node);
     
     return ZEUS_OK;
+
 }
 
 void zeus_log_config(zeus_config_t *config,zeus_log_t *log){
@@ -381,11 +365,6 @@ zeus_status_t zeus_config_get_log_path(zeus_process_t *process){
 
     alloc_log->level = ZEUS_DEFAULT_LOG_LEVEL;
 	
-    alloc_log->path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
-    if(alloc_log->path == NULL){
-        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log path error");
-        return ZEUS_ERROR;
-    }
 
     if(hd->d->size <= 1){
         zeus_write_log(process->log,ZEUS_LOG_ERROR,"log config size error");
@@ -403,13 +382,13 @@ zeus_status_t zeus_config_get_log_path(zeus_process_t *process){
     sz += zeus_strlen(ZEUS_LOG_FILENAME);
     sz += 1;
 
-    alloc_log->path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * sz);
-    if(alloc_log == NULL){
-        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log path error");
+
+    alloc_log->path = zeus_create_string(process,sz);
+    if(alloc_log->path == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create new log string error");
         return ZEUS_ERROR;
     }
 
-    alloc_log->path->size = sz;
 	
     beg = alloc_log->path->data;
 
@@ -443,6 +422,8 @@ zeus_status_t zeus_config_get_log_path(zeus_process_t *process){
     process->old = process->log;
 
     process->log = alloc_log;
+
+    process->pool->log = alloc_log;
 
     return ZEUS_OK;
 
@@ -516,16 +497,9 @@ zeus_status_t zeus_config_gateworker_log_path(zeus_process_t *process){
 
     path_sz = zeus_addr_delta(beg,path);
 
-    alloc_log->path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
+    alloc_log->path = zeus_create_string(process,path_sz);
     if(alloc_log->path == NULL){
-        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log structure error");
-        return ZEUS_ERROR;
-    }
-
-    alloc_log->path->size = path_sz;
-    alloc_log->path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * path_sz);
-    if(alloc_log->path->data == NULL){
-        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create log structure path data error");
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"%s process create log structure error");
         return ZEUS_ERROR;
     }
 
@@ -545,6 +519,8 @@ zeus_status_t zeus_config_gateworker_log_path(zeus_process_t *process){
     process->save = process->log;
 
     process->log = alloc_log;
+
+    process->pool->log = alloc_log;
     
     zeus_write_log(process->log,ZEUS_LOG_NOTICE,"log initialize");
 
@@ -566,11 +542,6 @@ zeus_status_t zeus_config_get_pid_path(zeus_process_t *process){
         return ZEUS_ERROR;
     }
 
-    process->pid_run_flag_path = (zeus_string_t *)zeus_memory_alloc(process->pool,sizeof(zeus_string_t));
-    if(process->pid_run_flag_path == NULL){
-        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create pid file string structure error");
-        return ZEUS_ERROR;
-    }
 
     if(hd->d->size <= 1){
         zeus_write_log(process->log,ZEUS_LOG_ERROR,"pid file configuration error");
@@ -588,10 +559,13 @@ zeus_status_t zeus_config_get_pid_path(zeus_process_t *process){
 
     sz += zeus_strlen(ZEUS_PID_FILENAME);
     sz += 1;
+    
+    process->pid_run_flag_path = zeus_create_string(process,sz);
+    if(process->pid_run_flag_path == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create pid file path error");
+        return ZEUS_ERROR;
+    }
 
-
-    process->pid_run_flag_path->data = (zeus_char_t *)zeus_memory_alloc(process->pool,sizeof(zeus_char_t) * sz);
-	
     beg = process->pid_run_flag_path->data;
 
     zeus_memcpy(beg,hd->d->data,hd->d->size - 1);

@@ -7,6 +7,28 @@
 
 #include "zeus_string.h"
 
+zeus_string_t *zeus_create_string(zeus_process_t *p,zeus_size_t sz){
+    
+    zeus_string_t *alloc_string;
+
+    alloc_string = (zeus_string_t *)zeus_memory_alloc(p->pool,sizeof(zeus_string_t));
+    if(!alloc_string){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"zeus create string memory error");
+        return NULL;
+    }
+
+    alloc_string->size = sz;
+    alloc_string->data = (zeus_char_t *)zeus_memory_alloc(p->pool,sizeof(zeus_char_t) * sz);
+    if(!alloc_string->data){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"zeus create string data error");
+        return NULL;
+    }
+
+    return alloc_string;
+
+}
+
+
 zeus_char_t *zeus_vsnprintf(zeus_char_t *beg,zeus_char_t *end,const zeus_char_t *fmt,va_list ap){
     
     zeus_int_t nwrite;

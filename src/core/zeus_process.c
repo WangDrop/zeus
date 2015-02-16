@@ -60,12 +60,12 @@ zeus_process_t *zeus_create_process(void){
 
 zeus_status_t zeus_init_process(zeus_process_t *process){
     
-    if((process->config = zeus_create_config(process->pool)) == NULL){
+    if((process->config = zeus_create_config(process)) == NULL){
         zeus_write_log(process->log,ZEUS_LOG_ERROR,"init process config error");
         return ZEUS_ERROR;
     }
 
-    if(zeus_init_config(process->config,process->pool) == ZEUS_ERROR){
+    if(zeus_init_config(process) == ZEUS_ERROR){
         zeus_write_log(process->log,ZEUS_LOG_ERROR,"init process config content error");
         return ZEUS_ERROR;
     }

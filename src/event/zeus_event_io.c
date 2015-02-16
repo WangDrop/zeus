@@ -66,6 +66,7 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
         return ZEUS_ERROR;
     }
 
+
     if(!tconn->wr){
         if((tconn->wr = zeus_create_event(p)) == NULL){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process alloc write event error");
@@ -73,6 +74,12 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
             return ZEUS_ERROR;
         }
         tconn->wr->connection = tconn;
+    }
+    
+    if(zeus_proto_helper_generate_ukey(p,tconn) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process generate new connection key error");
+        zeus_recycle_connection_list_node_to_pool(p,tnode);
+        return ZEUS_ERROR;
     }
 
     tconn->wrstatus = ZEUS_EVENT_ON;

@@ -28,6 +28,8 @@ struct zeus_connection_s{
 
     zeus_socklen_t *peerlen;
 
+    zeus_string_t *ukey;   
+
 };
 
 
