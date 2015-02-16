@@ -17,7 +17,13 @@ zeus_event_t *zeus_create_event(zeus_process_t *p){
     }
 
     alloc_event->connection = NULL;
-    alloc_event->buffer = NULL;
+    
+    alloc_event->buffer = zeus_create_list(p->pool,p->log);
+    if(alloc_event->buffer == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"create event buffer list error");
+        return NULL;
+    }
+
     alloc_event->handler = NULL;
     alloc_event->timeout_rbnode = NULL;
     alloc_event->timeout_handler = NULL;
@@ -76,7 +82,6 @@ zeus_status_t zeus_master_event_loop(zeus_process_t *p){
 
 zeus_status_t zeus_event_loop(zeus_process_t *p){
     
-    zeus_timeval_t nt;
     zeus_event_timer_rbnode_t *tnode;
     zeus_itimerval_t itimer;
 
@@ -121,10 +126,17 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
 
     itimer.it_interval.tv_sec = 0;
     itimer.it_interval.tv_usec = 0;
+    p->cache_time = zeus_get_cache_timeval();
 
     for(;;){ 
         
-        if(zeus_quit == 1 || zeus_segv == 1){
+        if(zeus_quit == 1){
+            zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s process will quit",(p->pidx)?"worker":"gateway");
+            exit(0);
+        }
+
+        if(zeus_segv == 1){
+            zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s process recv SIGSEGV",(p->pidx)?"worker":"gateway");
             exit(0);
         }
         
@@ -166,17 +178,11 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
             }
         
         }
-        
 
-        if(gettimeofday(&nt,NULL) == -1){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process gets current time error : %s",\
-                          (p->pidx)?"worker":"gateway",strerror(errno));
-            continue;
-        }
-
+        zeus_update_time();
 
         while((tnode = zeus_event_timer_rbtree_find_next(p->timer,p->timer->root)) != p->timer->nil){
-            if(zeus_event_timer_rbtree_key_compare(&nt,&tnode->t) == ZEUS_EVENT_TIMER_GT){
+            if(zeus_event_timer_rbtree_key_compare(p->cache_time,&tnode->t) == ZEUS_EVENT_TIMER_GT){
                 if(zeus_event_timer_rbtree_delete(p->timer,tnode) != ZEUS_OK){
                     zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process deletes timer tree node error",\
                                   (p->pidx)?"worker":"gateway");

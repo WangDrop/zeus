@@ -13,8 +13,8 @@ static const zeus_char_t zeus_time_sample[] = "2014-12-21 16:18:20 Sun";
 #define ZEUS_CACHE_TIME_STRING_LENGTH (sizeof(zeus_time_sample)/sizeof(zeus_time_sample[0]))
 
 static const zeus_char_t *zeus_time_weekday[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
-static zeus_timeval_t zeus_cache_time;
 static zeus_char_t zeus_cache_time_string[ZEUS_CACHE_TIME_STRING_LENGTH];
+static zeus_timeval_t zeus_cache_time;
 
 // Update or get cached time , we need take async-signal-safe into consideration.
 // When we are in a signal handler , we will not use the cache time , we may use a local object in the signal handler.
@@ -26,6 +26,13 @@ void zeus_update_time(){
     zeus_trans_timeval_to_string();
     
     return ;
+
+}
+
+zeus_timeval_t *zeus_get_cache_timeval(){
+
+    zeus_update_time();
+    return &zeus_cache_time;
 
 }
 

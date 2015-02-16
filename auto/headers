@@ -16,6 +16,7 @@ LIB_CHECK_FILE=
 ZEUS_SRC_CORE_CHECK_FILE=
 ZEUS_SRC_EVENT_CHECK_FILE=
 ZEUS_SRC_PROTO_CHECK_FILE=
+ZEUS_SRC_PROTO_SINGLE_HEADER=
 CHECK_FILE_SRC="zeus.$$.check.tmp.c"
 CHECK_FILE_OBJ="zeus.$$.check.tmp"
 
@@ -215,6 +216,14 @@ ZEUS_SRC_PROTO_CHECK_FILE="$ZEUS_SRC_PROTO_CHECK_FILE zeus_proto_helper"
 
 
 for zeusfile in $ZEUS_SRC_PROTO_CHECK_FILE
+do
+    check_file_ "../$SRC_DIR/$PROTO_DIR/$zeusfile.h"
+done
+
+
+ZEUS_SRC_PROTO_SINGLE_HEADER="$ZEUS_SRC_PROTO_SINGLE_HEADER zeus_proto_header"
+
+for zeusfile in $ZEUS_SRC_PROTO_SINGLE_HEADER
 do
     check_file_ "../$SRC_DIR/$PROTO_DIR/$zeusfile.h"
 done

@@ -9,7 +9,7 @@
 
 zeus_status_t zeus_proto_ack_connection(zeus_process_t *p,zeus_event_t *ev){
 
-    return ZEUS_OK;
+    return zeus_proto_helper_generate_ack_connection_package(p,ev);
 
 }
 

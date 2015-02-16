@@ -14,5 +14,6 @@
 #define ZEUS_CLIENT_USER_KEY_MAX 62
 
 zeus_status_t zeus_proto_helper_generate_ukey(zeus_process_t *,zeus_connection_t *);
+zeus_status_t zeus_proto_helper_generate_ack_connection_package(zeus_process_t *,zeus_event_t *);
 
 #endif

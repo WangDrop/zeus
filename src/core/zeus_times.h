@@ -15,5 +15,6 @@
 void zeus_update_time();
 void zeus_trans_timeval_to_string();
 const zeus_char_t *zeus_get_time();
+zeus_timeval_t *zeus_get_cache_timeval();
 
 #endif

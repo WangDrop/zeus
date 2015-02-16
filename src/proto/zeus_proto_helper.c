@@ -38,3 +38,21 @@ zeus_status_t zeus_proto_helper_generate_ukey(zeus_process_t *p,zeus_connection_
     return ZEUS_OK;
 
 }
+
+zeus_status_t zeus_proto_helper_generate_ack_connection_package(zeus_process_t *p,zeus_event_t *ev){
+    
+    zeus_list_data_t *tbuf;
+    
+    if(!ev->buffer->tail){
+        if((tbuf = zeus_create_buffer_list_node(p)) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"alloc buffer list node error in ack connection package method");
+            return ZEUS_ERROR;
+        }
+        zeus_insert_list(ev->buffer,tbuf);
+    }
+
+    tbuf = ev->buffer->tail;
+    // TODO
+
+    return ZEUS_OK;
+}

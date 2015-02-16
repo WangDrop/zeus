@@ -20,13 +20,11 @@ void zeus_master_signal_handler(int signo){
         case SIGTERM:
         case SIGHUP:
             
-            zeus_write_log(process->log,ZEUS_LOG_NOTICE,"master process recieves quit signals");
             zeus_quit = 1;
             break;
 
         case SIGCHLD:
             
-            zeus_write_log(process->log,ZEUS_LOG_NOTICE,"master process recieves SIGCHLD signal");
             while((pid = waitpid(-1,NULL,WNOHANG)) > 0){
                 for(idx = 0 ; idx < (process->worker + 1) ; ++ idx){
                     if(process->child[idx] == pid){
@@ -42,7 +40,6 @@ void zeus_master_signal_handler(int signo){
 
         case SIGSEGV:
 
-            zeus_write_log(process->log,ZEUS_LOG_NOTICE,"master process recieves SIGSEGV signal");
             zeus_segv = 1;
             break;
 
@@ -66,15 +63,11 @@ void zeus_signal_handler(int signo){
         case SIGQUIT:
         case SIGTERM:
             
-            zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%s process recieves quit signals",\
-                          (process->pidx)?"worker":"gateway");
             zeus_quit = 1;
             break;
 
         case SIGSEGV:
             
-            zeus_write_log(process->log,ZEUS_LOG_NOTICE,"%s process recieves SIGSEGV signals",\
-                          (process->pidx)?"worker":"gateway");
             zeus_segv = 1;
             break;
 

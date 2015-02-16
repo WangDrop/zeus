@@ -49,6 +49,7 @@ struct zeus_process_s{
     zeus_list_t *connection;
     zeus_fd_t epfd;
     zeus_event_timer_rbtree_t *timer;
+    zeus_timeval_t *cache_time;
 
 
     zeus_size_t arg_sz;
