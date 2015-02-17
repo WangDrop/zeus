@@ -40,6 +40,7 @@ zeus_list_data_t *zeus_create_buffer_list_node(zeus_process_t *process){
     }
 
     alloc_buffer_head->start = alloc_b;
+    alloc_buffer_head->last = alloc_b;
     alloc_buffer_head->current = alloc_b;
     alloc_buffer_head->end = zeus_addr_add(alloc_b,ZEUS_BUFFER_MAX_SIZE);
 
@@ -68,6 +69,7 @@ zeus_status_t zeus_recycle_buffer_list_node_to_pool(zeus_process_t *process,zeus
 
     p = (zeus_buffer_t *)(z->d);
     p->current = p->start;
+    p->last = p->start;
     
     z->next = process->buffer_pool;
     process->buffer_pool = z;

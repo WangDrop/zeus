@@ -28,6 +28,7 @@ zeus_event_t *zeus_create_event(zeus_process_t *p){
     alloc_event->timeout_rbnode = NULL;
     alloc_event->timeout_handler = NULL;
     alloc_event->timeout = ZEUS_EVENT_OFF;
+    alloc_event->buflen = 0;
 
     return alloc_event;
 

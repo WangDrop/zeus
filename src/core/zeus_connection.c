@@ -107,7 +107,8 @@ zeus_status_t zeus_recycle_connection_list_node_to_pool(zeus_process_t *process,
             }
             conn->rd->buffer->head = conn->rd->buffer->tail = NULL;
         }
-
+        conn->rd->buflen = 0;
+        
         // conn->rd->buffer does not change
         // conn->rd->connection does not change
     }
@@ -130,8 +131,9 @@ zeus_status_t zeus_recycle_connection_list_node_to_pool(zeus_process_t *process,
                 conn->wr->buffer->head = buf->next;
                 zeus_recycle_buffer_list_node_to_pool(process,buf);
             }
-            conn->rd->buffer->head = conn->wr->buffer->tail = NULL;
+            conn->wr->buffer->head = conn->wr->buffer->tail = NULL;
         }
+        conn->wr->buflen = 0;
 
         // conn->wr->buffer does not change
         // conn->wr->connection does not change

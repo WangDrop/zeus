@@ -16,6 +16,7 @@
 struct zeus_buffer_s{
     
     void *start;
+    void *last;
     void *current;
     void *end;
 
@@ -23,5 +24,6 @@ struct zeus_buffer_s{
 
 zeus_list_data_t *zeus_create_buffer_list_node(zeus_process_t *);
 zeus_status_t zeus_recycle_buffer_list_node_to_pool(zeus_process_t *,zeus_list_data_t *);
+
 
 #endif

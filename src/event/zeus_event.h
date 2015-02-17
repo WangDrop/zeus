@@ -24,6 +24,8 @@ struct zeus_event_s{
 
     zeus_list_t *buffer;
 
+    zeus_size_t buflen;
+
     zeus_event_handler *handler;
 
     zeus_event_timer_rbnode_t *timeout_rbnode;
