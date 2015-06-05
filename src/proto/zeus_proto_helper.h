@@ -10,10 +10,9 @@
 
 #include "../core/zeus_common.h"
 
-#define ZEUS_CLIENT_USER_KEY_SIZE 32
-#define ZEUS_CLIENT_USER_KEY_MAX 62
+#define ZEUS_ACK_OK_MESSAGE "zeus_ack_ok"
+#define ZEUS_ACK_OK_MESSAGE_SIZE (sizeof(ZEUS_ACK_OK_MESSAGE))
 
-zeus_status_t zeus_proto_helper_generate_ukey(zeus_process_t *,zeus_connection_t *);
-zeus_status_t zeus_proto_helper_generate_ack_connection_package(zeus_process_t *,zeus_event_t *);
+zeus_status_t zeus_proto_helper_generate_ack_ok_packet(zeus_process_t *,zeus_event_t *);
 
 #endif

@@ -10,6 +10,8 @@
 #ifndef __ZEUS_CONNECTION_H_H_H__
 #define __ZEUS_CONNECTION_H_H_H__
 
+#define ZEUS_IPV4_ADDRESS_STRING_SIZE 20
+
 #include "zeus_common.h"
 
 struct zeus_connection_s{
@@ -27,8 +29,6 @@ struct zeus_connection_s{
     zeus_sockaddr_in_t *peer;
 
     zeus_socklen_t *peerlen;
-
-    zeus_string_t *ukey;   
 
 };
 

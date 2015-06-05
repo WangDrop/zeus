@@ -144,6 +144,8 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
     zeus_connection_t *tconn;// For new connection
     zeus_int_t terror;
 
+    zeus_char_t accept_address[ZEUS_IPV4_ADDRESS_STRING_SIZE];
+
     conn = ev->connection;
 
     if((tnode = zeus_create_connection_list_node(p)) == NULL){
@@ -164,6 +166,15 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
             return ZEUS_ERROR;
         }
     }
+
+    if(inet_ntop(AF_INET,(const void *)&tconn->peer->sin_addr,accept_address,ZEUS_IPV4_ADDRESS_STRING_SIZE) == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process convert the connection address error : %s",strerror(errno));
+        return ZEUS_ERROR;
+    }
+    
+    /* Log the client information */
+    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"client %s:%d connect to the server",accept_address,ntohs(tconn->peer->sin_port));
+    /* Log the client information */
 
     if((tconn->fd = accept(conn->fd,(zeus_sockaddr_t *)tconn->peer,tconn->peerlen)) == -1){
         terror = errno;
@@ -192,12 +203,6 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
         tconn->wr->connection = tconn;
     }
     
-    if(zeus_proto_helper_generate_ukey(p,tconn) == ZEUS_ERROR){
-        zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process generate new connection key error");
-        zeus_recycle_connection_list_node_to_pool(p,tnode);
-        return ZEUS_ERROR;
-    }
-
     if(zeus_proto_ack_connection(p,tconn->wr) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process,generate ack connection package error");
         zeus_recycle_connection_list_node_to_pool(p,tnode);

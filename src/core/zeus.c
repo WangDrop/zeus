@@ -36,7 +36,9 @@ int main(int argc,char *argv[]){
         exit(-1);
     }
 
-    zeus_spawn(process);
+    if(zeus_spawn(process) == ZEUS_ERROR){
+        exit(-1);
+    }
 
     return 0;
 
@@ -340,7 +342,7 @@ zeus_status_t zeus_master_prepare_loop(zeus_process_t *p){
 	
     zeus_size_t i;
 
-    
+    /*
     for(i = 0 ; i < p->worker + 1 ; ++ i){
         if(close(p->channel[i][0]) == -1){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"close read channel errro : %s",strerror(errno));
@@ -349,6 +351,7 @@ zeus_status_t zeus_master_prepare_loop(zeus_process_t *p){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"close write channel error : %s",strerror(errno));
         }
     }
+    */
    
 
     zeus_master_event_loop(p);

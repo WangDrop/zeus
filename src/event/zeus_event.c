@@ -156,13 +156,13 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
             for(tidx = 0 ; tidx < nev ; ++ tidx){
                 
                 tconn = (zeus_connection_t *)(loopev[tidx].data.ptr);
+                
+                if(loopev[tidx].events & EPOLLIN){
+                    tconn->rd->handler(p,tconn->rd);
+                }
 
                 if(loopev[tidx].events & EPOLLOUT){
                     tconn->wr->handler(p,tconn->wr);
-                }
-
-                if(loopev[tidx].events & EPOLLIN){
-                    tconn->rd->handler(p,tconn->rd);
                 }
             
             }
