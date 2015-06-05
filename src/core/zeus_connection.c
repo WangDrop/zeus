@@ -56,6 +56,7 @@ zeus_connection_t *zeus_create_connection_node(zeus_process_t *process){
 
     alloc_connection->peer = NULL;
     alloc_connection->peerlen = NULL;
+    alloc_connection->addr_string = NULL;
 
     return alloc_connection;
 

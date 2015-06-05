@@ -25,3 +25,30 @@ zeus_status_t zeus_proto_helper_generate_ack_ok_packet(zeus_process_t *p,zeus_ev
     return ZEUS_OK;
 
 }
+
+void zeus_proto_helper_get_opcode_and_pktlen(zeus_event_t *ev,zeus_uchar_t *opcode,zeus_uint_t *len){
+    
+    zeus_size_t idx;
+    zeus_size_t leftsize;
+    zeus_size_t len_current;
+    zeus_buffer_t *buf = (zeus_buffer_t *)ev->buffer->head->d;
+
+    *opcode = *(zeus_uchar_t *)(buf->current);
+    leftsize = zeus_addr_delta(buf->last,buf->current);
+    if(leftsize > ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE){
+        *len = *(zeus_uint_t *)zeus_addr_add(buf->current,ZEUS_PROTO_OPCODE_SIZE);
+        *len = (zeus_uint_t)ntohl(*len);
+    }else{
+        len_current = leftsize - ZEUS_PROTO_OPCODE_SIZE;
+        for(idx = 0 ; idx < len_current ; ++ idx){
+            *(zeus_uchar_t *)zeus_addr_add(len,idx) = *(zeus_uchar_t *)zeus_addr_add(buf->current,ZEUS_PROTO_OPCODE_SIZE + idx);
+        }
+        buf = (zeus_buffer_t *)ev->buffer->head->next->d;
+        for(idx = 0 ; idx < ZEUS_PROTO_DATA_LEN_SIZE ; ++ idx){
+            *(zeus_uchar_t *)zeus_addr_add(len,(len_current + idx)) = *(zeus_uchar_t *)zeus_addr_add(buf->current,idx);
+        }
+    }
+    
+    return ;
+
+}

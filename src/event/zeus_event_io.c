@@ -14,6 +14,7 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
     zeus_buffer_t *current_buf;
     zeus_size_t current_left_sz;
     zeus_size_t current_read_sz;
+    zeus_size_t current_read_cnt = 0;
 
     if(ev->buffer->tail == NULL){
         if((lnode = zeus_create_buffer_list_node(p)) == NULL){
@@ -42,6 +43,10 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
             current_buf = (zeus_buffer_t *)(lnode->d);
             current_left_sz = zeus_addr_delta(current_buf->end,current_buf->current);
         
+        }
+        
+        if(current_read_cnt ++ == ZEUS_READ_MAX_TIME_CNT){
+            break;
         }
 
         if((current_read_sz = read(ev->connection->fd,current_buf->current,current_left_sz)) == -1){
@@ -83,6 +88,16 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
     
     }
     
+    if(ev->buflen > ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE){
+        if(zeus_proto_solve_read_buf(p,ev) == ZEUS_ERROR){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process solve read buffer and do operation error", \
+                                                 p->pidx?"worker":"gateway");
+            // TODO
+            // recyle things
+            return ZEUS_ERROR;
+        }
+    }
+    
     return ZEUS_OK;
 
 }
@@ -95,11 +110,15 @@ zeus_status_t zeus_event_io_write(zeus_process_t *p,zeus_event_t *ev){
     zeus_connection_t *tconn;
     zeus_size_t current_left_sz;
     zeus_size_t current_write_sz;
+    zeus_size_t current_write_cnt = 0;
 
     while(ev->buffer->head){
         lnode = ev->buffer->head;
         current_buf = (zeus_buffer_t *)(lnode->d);
         current_left_sz = zeus_addr_delta(current_buf->current,current_buf->last);
+        if(current_write_cnt ++ == ZEUS_WRITE_MAX_TIME_CNT){
+            break;
+        }
         if((current_write_sz = write(ev->connection->fd,(const void *)current_buf->last,current_left_sz)) == -1){
             terrno = errno;
             if(terrno == EAGAIN || terrno == EWOULDBLOCK || terrno == EINTR){
@@ -165,15 +184,20 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process alloc socklen error");
             return ZEUS_ERROR;
         }
+
+        if((tconn->addr_string = zeus_create_string(p,ZEUS_IPV4_ADDRESS_STRING_SIZE)) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process alloc address string error");
+            return ZEUS_ERROR;
+        }
     }
 
-    if(inet_ntop(AF_INET,(const void *)&tconn->peer->sin_addr,accept_address,ZEUS_IPV4_ADDRESS_STRING_SIZE) == NULL){
+    if(inet_ntop(AF_INET,(const void *)&tconn->peer->sin_addr,tconn->addr_string->data,ZEUS_IPV4_ADDRESS_STRING_SIZE) == NULL){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process convert the connection address error : %s",strerror(errno));
         return ZEUS_ERROR;
     }
     
     /* Log the client information */
-    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"client %s:%d connect to the server",accept_address,ntohs(tconn->peer->sin_port));
+    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"client %s:%hu connect to the server",accept_address,ntohs(tconn->peer->sin_port));
     /* Log the client information */
 
     if((tconn->fd = accept(conn->fd,(zeus_sockaddr_t *)tconn->peer,tconn->peerlen)) == -1){

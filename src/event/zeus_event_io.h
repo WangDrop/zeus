@@ -8,6 +8,8 @@
 #ifndef __ZEUS_EVENT_IO_H_H_H__
 #define __ZEUS_EVENT_IO_H_H_H__
 
+#define ZEUS_READ_MAX_TIME_CNT 3
+#define ZEUS_WRITE_MAX_TIME_CNT 3
 
 #include "../core/zeus_common.h"
 
