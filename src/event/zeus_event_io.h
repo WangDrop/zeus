@@ -19,4 +19,8 @@ zeus_status_t zeus_event_io_write(zeus_process_t *,zeus_event_t *);
 
 zeus_status_t zeus_event_io_accept(zeus_process_t *,zeus_event_t *);
 
+zeus_status_t zeus_event_io_send_socket(zeus_process_t *,zeus_event_t *);
+
+zeus_status_t zeus_event_io_recv_socket(zeus_process_t *,zeus_event_t *);
+
 #endif

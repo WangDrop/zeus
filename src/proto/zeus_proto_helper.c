@@ -52,3 +52,44 @@ void zeus_proto_helper_get_opcode_and_pktlen(zeus_event_t *ev,zeus_uchar_t *opco
     return ;
 
 }
+
+void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *ev,zeus_char_t *cbuf,zeus_size_t sz){
+
+    zeus_size_t leftsz;
+    zeus_buffer_t *buf;
+    zeus_list_data_t *q;
+    zeus_char_t *r = cbuf;
+    
+    while(sz > 0){
+
+        q = ev->buffer->head;
+        buf = (zeus_buffer_t *)(ev->buffer->head->d);
+        leftsz = zeus_addr_delta(buf->last,buf->current);
+
+        if(leftsz >= sz){
+
+            zeus_memcpy((void *)r,buf->current,sz);
+            buf->current = zeus_addr_add(buf->current,sz);
+            ev->buflen -= sz;
+            sz = 0;
+            if(buf->current == buf->last){
+                ev->buffer->head = q->next;
+                zeus_recycle_buffer_list_node_to_pool(p,q);
+            }
+
+        }else{
+
+            zeus_memcpy((void *)r,buf->current,leftsz);
+            r = (zeus_char_t *)zeus_addr_add(r,leftsz);
+            sz -= leftsz;
+            ev->buflen -= sz;
+            ev->buffer->head = q->next;
+            zeus_recycle_buffer_list_node_to_pool(p,q);
+
+        }
+
+    }
+
+    return ;
+
+}

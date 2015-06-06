@@ -270,7 +270,7 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
 
     }
 
-    if(p->pidx == 0){
+    if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
 
         if((node = zeus_create_connection_list_node(p)) == NULL){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create listen connection error");

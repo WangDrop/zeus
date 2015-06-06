@@ -163,3 +163,23 @@ zeus_status_t zeus_helper_mod_event(zeus_process_t *p,zeus_connection_t *conn){
     return ZEUS_OK;
 
 }
+
+zeus_idx_t zeus_helper_find_load_lowest(zeus_process_t *p){
+    
+    zeus_int_t idx;
+
+    zeus_uint_t mval = p->worker_load[ZEUS_DATA_GATEWAY_PROCESS_INDEX + 1];
+    zeus_idx_t loc = ZEUS_DATA_GATEWAY_PROCESS_INDEX + 1;
+
+    for(idx = ZEUS_DATA_GATEWAY_PROCESS_INDEX + 1 ; idx < ZEUS_DATA_GATEWAY_PROCESS_INDEX + p->worker ; ++ idx){
+
+        if(mval > p->worker_load[idx]){
+            mval = p->worker_load[idx];
+            loc = idx;
+        }
+        
+    }
+
+    return loc;
+
+}

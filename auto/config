@@ -85,6 +85,10 @@ echo "# Max Connection"
 echo "connection=$ZEUS_MAX_CONNECTION"
 echo 
 
+echo "# Manage Password"
+echo "manage=$ZEUS_MANAGE_PASSWD"
+echo
+
 exec 1>&6
 exec 6>&-
 

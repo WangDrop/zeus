@@ -14,7 +14,7 @@
 
 #define ZEUS_MASTER_PROCESS_INDEX -1
 
-#define ZEUS_GATEWAY_PROCESS_INDEX 0
+#define ZEUS_DATA_GATEWAY_PROCESS_INDEX 0
 
 struct zeus_process_s{
     
@@ -44,6 +44,7 @@ struct zeus_process_s{
     zeus_fd_t listenfd;
     zeus_int_t **channel;
     volatile zeus_pid_t *child;
+    zeus_uint_t *worker_load;
 
 
     zeus_list_t *connection;

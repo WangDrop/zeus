@@ -25,6 +25,10 @@ ZEUS_PID_DIR=
 ZEUS_LOG_DIR=
 ZEUS_CONFIG_DIR=
 
+# manage password
+
+ZEUS_MANAGE_PASSWD=
+ZEUS_MANAGE_PASSWD_LEN=32
 
 # time resolution
 
@@ -53,17 +57,18 @@ usage(){
     
     echo "Usage : ./configuration [options] "   1>&2
     cat<<EOF
-	--help                  help information
-	--version               version information
-	--user=username         user configuration
-	--group=groupname       group configuration
-	--worker=n              worker process configuration
-	--port=m                port configuration
-	--resolution=t          time resolution configuration
-	--log-dir=log           log file configuration
-	--pid-dir=pid           pid file configuration
-	--conf-dir=conf         config file 
-	--max-connection=mc 	max connection
+        --help                  help information
+        --version               version information
+        --user=username         user configuration
+        --group=groupname       group configuration
+        --worker=n              worker process configuration
+        --port=m                port configuration
+        --resolution=t          time resolution configuration
+        --log-dir=log           log file configuration
+        --pid-dir=pid           pid file configuration
+        --conf-dir=conf         config file 
+        --max-connection=mc     max connection
+        --manage-hash=mh        manage passwd
 EOF
     return 1
 
@@ -123,6 +128,9 @@ do
 		--max-connection=*)
 			ZEUS_MAX_CONNECTION=$value_
 			;;
+        --manage-hash=*)
+            ZEUS_MANAGE_PASSWD=$value_
+            ;;
         *)
             echo "Unknown option : $options"
             echo "Please use ./configure --help to check"
@@ -173,6 +181,16 @@ else
 fi
 
 
+
+echo -n "check manage password length $ZEUS_MANAGE_PASSWD ... "
+
+if [ $ZEUS_MANAGE_PASSWD_LEN -eq $(echo $ZEUS_MANAGE_PASSWD | wc -L) ]
+then
+    echo "success !"
+else
+    echo "the manage password length is $(echo $ZEUS_MANAGE_PASSWD | wc -L) !"
+    exit 1
+fi
 
 echo -n "check port $ZEUS_PORT ... "
 

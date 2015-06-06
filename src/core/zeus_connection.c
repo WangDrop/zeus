@@ -94,6 +94,7 @@ zeus_status_t zeus_recycle_connection_list_node_to_pool(zeus_process_t *process,
 
             node = conn->rd->timeout_rbnode;
             conn->rd->timeout_rbnode = NULL;
+            /* rbnode is not in rbtree */
             zeus_recycle_event_timer_rbnode_to_pool(process->timer,node);
             
         }
@@ -107,7 +108,7 @@ zeus_status_t zeus_recycle_connection_list_node_to_pool(zeus_process_t *process,
             conn->rd->buffer->head = conn->rd->buffer->tail = NULL;
         }
         conn->rd->buflen = 0;
-        
+
         // conn->rd->buffer does not change
         // conn->rd->connection does not change
     }

@@ -54,6 +54,7 @@ zeus_process_t *zeus_create_process(void){
     alloc_process->channel = NULL;
     alloc_process->child = NULL;
     alloc_process->save = NULL;
+    alloc_process->worker_load = NULL;
     
     return alloc_process;
 

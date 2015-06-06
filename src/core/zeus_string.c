@@ -91,3 +91,22 @@ zeus_int_t zeus_string_equal(zeus_string_t *s,zeus_string_t *d){
     return 0;
 
 }
+
+zeus_int_t zeus_string_and_carr_equal(zeus_string_t *s,zeus_char_t *carr,zeus_size_t sz){
+
+    zeus_size_t idx;
+    
+    if(s->size != sz + 1){
+        return -1;
+    }
+
+    for(idx = 0 ; idx != s->size ; ++ idx){
+        if(s->data[idx] != carr[idx]){
+            return -1;
+        }
+    }
+
+    return 0;
+
+}
+

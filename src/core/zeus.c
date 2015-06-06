@@ -24,6 +24,8 @@ int main(int argc,char *argv[]){
         exit(-1);
     }
 
+    zeus_log_config(process->config,process->log);
+
     if(zeus_init_daemon(process) == ZEUS_ERROR){
         exit(-1);
     }
@@ -289,6 +291,16 @@ zeus_status_t zeus_prepare_spawn(zeus_process_t *p){
         p->child[idx] = 0;
     }
 
+    p->worker_load = (zeus_uint_t *)zeus_memory_alloc(p->pool,sizeof(zeus_uint_t) * (p->worker + 1));
+    if(p->worker_load == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"alloc worker process load error");
+        return ZEUS_ERROR;
+    }
+
+    for(idx = 0 ; idx < (p->worker + 1) ; ++ idx){
+        p->worker_load[idx] = 0;
+    }
+
     return ZEUS_OK;
 
 }
@@ -339,10 +351,12 @@ zeus_status_t zeus_spawn(zeus_process_t *p){
 }
 
 zeus_status_t zeus_master_prepare_loop(zeus_process_t *p){
-	
-    zeus_size_t i;
+
+    p->pidx = ZEUS_MASTER_PROCESS_INDEX;
 
     /*
+    zeus_size_t i;
+
     for(i = 0 ; i < p->worker + 1 ; ++ i){
         if(close(p->channel[i][0]) == -1){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"close read channel errro : %s",strerror(errno));
