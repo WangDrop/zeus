@@ -20,6 +20,7 @@ static zeus_string_t zeus_config_port = {(zeus_char_t *)"port",sizeof("port")};
 static zeus_string_t zeus_config_worker = {(zeus_char_t *)"worker",sizeof("worker")};
 static zeus_string_t zeus_config_timer = {(zeus_char_t *)"timer",sizeof("timer")};
 static zeus_string_t zeus_config_max_connection = {(zeus_char_t *)"connection",sizeof("connection")};
+static zeus_string_t zeus_config_manage_hash = {(zeus_char_t *)"manage",sizeof("manage")};
 
 static zeus_string_t zeus_log_filename = {(zeus_char_t *)"zeus.log",sizeof("zeus.log")};
 
@@ -333,6 +334,24 @@ zeus_status_t zeus_config_get_port(zeus_config_t *config,zeus_log_t *log,zeus_us
 
 }
 
+zeus_status_t zeus_config_get_manage_hash(zeus_process_t *process){
+
+    zeus_hash_data_t *hd;
+
+    if(zeus_config_check(process->config,process->log,&hd,&zeus_config_manage_hash) == ZEUS_ERROR){
+        return ZEUS_ERROR;
+    }
+
+    process->manage_passwd = zeus_create_string(process,hd->d->size);
+    if(process->manage_passwd == NULL){
+        return ZEUS_ERROR;
+    }
+
+    zeus_memcpy((void *)process->manage_passwd->data,(const void *)hd->d->data,hd->d->size);
+
+    return ZEUS_OK;
+
+}
 
 
 zeus_status_t zeus_config_get_log_path(zeus_process_t *process){

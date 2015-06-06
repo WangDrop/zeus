@@ -23,7 +23,9 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_proto_helper_get_opcode_and_pktlen(ev,&opcode,&len);
 
-    if(ev->buflen - ZEUS_PROTO_OPCODE_SIZE - ZEUS_PROTO_DATA_LEN_SIZE > len){
+    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%d %u",opcode,len);
+
+    if(ev->buflen - ZEUS_PROTO_OPCODE_SIZE - ZEUS_PROTO_DATA_LEN_SIZE >= len){
 
         switch(opcode){
             case ZEUS_PROTO_DATA_INS:
@@ -41,6 +43,13 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                                                            ev,               \
                                                            client_check_data,\
                                                            ZEUS_PROTO_CLIENT_CHECKOUT_STRING_SIZE_MAX + ZEUS_PROTO_TRANS_SIZE);
+
+                if(zeus_proto_helper_check_hash(p->manage_passwd,client_check_data,\
+                                                ZEUS_PROTO_CLIENT_CHECKOUT_STRING_SIZE_MAX) == ZEUS_OK){
+                    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"password corrent");
+                }else{
+                    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"password incorrent");
+                }
                 
                 break;
             default:

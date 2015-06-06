@@ -29,7 +29,7 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
 
     for(;;){
 
-        current_left_sz = zeus_addr_delta(current_buf->end,current_buf->current);
+        current_left_sz = zeus_addr_delta(current_buf->end,current_buf->last);
 
         if(current_left_sz == 0){
 
@@ -41,7 +41,7 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
             zeus_insert_list(ev->buffer,lnode);
             lnode = ev->buffer->tail;
             current_buf = (zeus_buffer_t *)(lnode->d);
-            current_left_sz = zeus_addr_delta(current_buf->end,current_buf->current);
+            current_left_sz = zeus_addr_delta(current_buf->end,current_buf->last);
         
         }
         
@@ -49,7 +49,7 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
             break;
         }
 
-        if((current_read_sz = read(ev->connection->fd,current_buf->current,current_left_sz)) == -1){
+        if((current_read_sz = read(ev->connection->fd,current_buf->last,current_left_sz)) == -1){
             terrno = errno;
             if(terrno == EAGAIN || terrno == EWOULDBLOCK || terrno == EINTR){
                 return ZEUS_OK;
@@ -70,11 +70,13 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
         }else if(current_read_sz < current_left_sz){
 
             ev->buflen += current_read_sz;
+            current_buf->last = zeus_addr_add(current_buf->last,current_read_sz);
             break;
 
         }else{
             
             ev->buflen += current_read_sz;
+            current_buf->last = zeus_addr_add(current_buf->last,current_read_sz);
             if((lnode = zeus_create_buffer_list_node(p)) == NULL){
                 zeus_write_log(p->log,ZEUS_LOG_ERROR,"create buffer error in zeus_event_io_read");
                 return ZEUS_ERROR;
@@ -115,11 +117,11 @@ zeus_status_t zeus_event_io_write(zeus_process_t *p,zeus_event_t *ev){
     while(ev->buffer->head){
         lnode = ev->buffer->head;
         current_buf = (zeus_buffer_t *)(lnode->d);
-        current_left_sz = zeus_addr_delta(current_buf->current,current_buf->last);
+        current_left_sz = zeus_addr_delta(current_buf->last,current_buf->current);
         if(current_write_cnt ++ == ZEUS_WRITE_MAX_TIME_CNT){
             break;
         }
-        if((current_write_sz = write(ev->connection->fd,(const void *)current_buf->last,current_left_sz)) == -1){
+        if((current_write_sz = write(ev->connection->fd,(const void *)current_buf->current,current_left_sz)) == -1){
             terrno = errno;
             if(terrno == EAGAIN || terrno == EWOULDBLOCK || terrno == EINTR){
                 return ZEUS_OK;
@@ -128,10 +130,11 @@ zeus_status_t zeus_event_io_write(zeus_process_t *p,zeus_event_t *ev){
                 return ZEUS_ERROR;
             }
         }else if(current_write_sz < current_left_sz){
-            current_buf->last = zeus_addr_add(current_buf->last,current_write_sz);
+            current_buf->current = zeus_addr_add(current_buf->current,current_write_sz);
             ev->buflen -= current_write_sz;
             break;
         }else{
+            current_buf->current = zeus_addr_add(current_buf->current,current_write_sz);
             ev->buflen -= current_write_sz;
             ev->buffer->head = lnode->next;
             if(!ev->buffer->head){
@@ -140,13 +143,24 @@ zeus_status_t zeus_event_io_write(zeus_process_t *p,zeus_event_t *ev){
             zeus_recycle_buffer_list_node_to_pool(p,lnode);
         }
     }
+
     
     if(ev->buffer->head == NULL){
         tconn = ev->connection;
         if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
+
             tconn->wrstatus = ZEUS_EVENT_OFF;
             tconn->rdstatus = ZEUS_EVENT_ON;
+            if(!tconn->rd){
+
+                if((tconn->rd = zeus_create_event(p)) == NULL){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"create read event node error");
+                    return ZEUS_ERROR;
+                }
+                tconn->rd->connection = tconn;
+            }
             tconn->rd->handler = zeus_event_io_read;
+
         }else{
             tconn->wrstatus = ZEUS_EVENT_OFF;
         }
@@ -170,8 +184,6 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
     zeus_int_t terror;
 
     //zeus_idx_t lowest;
-
-    zeus_char_t accept_address[ZEUS_IPV4_ADDRESS_STRING_SIZE];
 
     conn = ev->connection;
 
@@ -205,7 +217,8 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
     }
     
     /* Log the client information */
-    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"client %s:%hu connect to the server",accept_address,ntohs(tconn->peer->sin_port));
+    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"client %s:%hu connect to the server",\
+                                          tconn->addr_string->data,ntohs(tconn->peer->sin_port));
     /* Log the client information */
 
     if((tconn->fd = accept(conn->fd,(zeus_sockaddr_t *)tconn->peer,tconn->peerlen)) == -1){
@@ -218,6 +231,7 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
             return ZEUS_ERROR;
         }
     }
+
 
     if(fcntl(tconn->fd,F_SETFL,O_NONBLOCK) == -1){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process set new connection fd nonblock error : %s",strerror(errno));

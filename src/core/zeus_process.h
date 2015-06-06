@@ -36,6 +36,7 @@ struct zeus_process_s{
     zeus_string_t *pid_run_flag_path;
     zeus_fd_t pid_run_flag_fd;
     zeus_uint_t max_connection;
+    zeus_string_t *manage_passwd;
 
 
     zeus_pid_t pid;

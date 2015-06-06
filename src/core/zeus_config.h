@@ -35,6 +35,7 @@ zeus_status_t zeus_config_get_max_connection(zeus_config_t *,zeus_log_t *,zeus_u
 
 zeus_status_t zeus_config_get_log_path(zeus_process_t *);
 zeus_status_t zeus_config_get_pid_path(zeus_process_t *);
+zeus_status_t zeus_config_get_manage_hash(zeus_process_t *);
 
 
 zeus_status_t zeus_config_gateworker_log_path(zeus_process_t *);
