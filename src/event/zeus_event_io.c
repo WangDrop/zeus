@@ -90,8 +90,6 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
         if(zeus_proto_solve_read_buf(p,ev) == ZEUS_ERROR){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process solve read buffer and do operation error", \
                                                  p->pidx?"worker":"gateway");
-            // TODO
-            // recyle things
             return ZEUS_ERROR;
         }
     }
@@ -186,8 +184,6 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
     zeus_connection_t *tconn;// For new connection
     zeus_int_t terror;
 
-    //zeus_idx_t lowest;
-
     conn = ev->connection;
 
     if((tnode = zeus_create_connection_list_node(p)) == NULL){
@@ -242,15 +238,7 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
         return ZEUS_ERROR;
     }
     
-/*
     p->worker_load[p->pidx] += 1;
-
-    if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
-        
-        lowest = zeus_helper_find_lowest(p);
-    
-    }
-*/
 
     if(!tconn->wr){
         if((tconn->wr = zeus_create_event(p)) == NULL){
