@@ -32,7 +32,10 @@ struct zeus_connection_s{
 
     zeus_string_t *addr_string;
 
-    zeus_uint_t unix_domain_flag;
+    zeus_uint_t quiting;
+
+    zeus_list_data_t *node;
+
 
 };
 

@@ -72,6 +72,8 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
 
     zeus_uint_t ignore_opcode_and_len = 1;
     zeus_size_t opcode_add_len = ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE;
+
+    ev->buflen -= opcode_add_len;
     
     while(sz > 0){
 
@@ -85,6 +87,9 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
                     buf->current = zeus_addr_add(buf->current,opcode_add_len);
                     opcode_add_len = 0;
                     if(buf->current == buf->last){
+                        if(q->next){
+                            q->next->prev = NULL;
+                        }
                         ev->buffer->head = q->next;
                         if(!ev->buffer->head){
                             ev->buffer->tail = NULL;
@@ -96,6 +101,9 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
                 }else{
                     buf->current = zeus_addr_add(buf->current,leftsz);
                     opcode_add_len -= leftsz;
+                    if(q->next){
+                        q->next->prev = NULL;
+                    }
                     ev->buffer->head = q->next;
                     if(!ev->buffer->head){
                         ev->buffer->tail = NULL;
@@ -105,6 +113,7 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
                     buf = (zeus_buffer_t *)(q->d);
                 }
             }
+            ignore_opcode_and_len = 0;
         }
 
         leftsz = zeus_addr_delta(buf->last,buf->current);
@@ -116,6 +125,9 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
             ev->buflen -= sz;
             sz = 0;
             if(buf->current == buf->last){
+                if(q->next){
+                    q->next->prev = NULL;
+                }
                 ev->buffer->head = q->next;
                 if(!ev->buffer->head){
                     ev->buffer->tail = NULL;
@@ -129,6 +141,9 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
             r = (zeus_char_t *)zeus_addr_add(r,leftsz);
             sz -= leftsz;
             ev->buflen -= sz;
+            if(q->next){
+                q->next->prev = NULL;
+            }
             ev->buffer->head = q->next;
             if(!ev->buffer->head){
                 ev->buffer->tail = NULL;

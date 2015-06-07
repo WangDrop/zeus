@@ -44,6 +44,9 @@ zeus_status_t zeus_proto_buffer_write_byte(zeus_process_t *p,zeus_event_t *ev,ze
 }
 
 zeus_status_t zeus_proto_buffer_write_uint(zeus_process_t *p,zeus_event_t *ev,zeus_uint_t i){
+    
+    // TODO
+    // UPDATE TO BYTE WRITE ONE BY ONE
 
     zeus_list_data_t *tbuf;
     zeus_buffer_t *b;

@@ -18,6 +18,8 @@ struct zeus_list_data_s{
 
     zeus_list_data_t *next;
 
+    zeus_list_data_t *prev;
+
 };
 
 struct zeus_list_s{

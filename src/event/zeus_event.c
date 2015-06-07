@@ -290,6 +290,7 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         conn->fd = p->listenfd;
         conn->rd->handler = zeus_event_io_accept;
         conn->rdstatus = ZEUS_EVENT_ON;
+        conn->quiting = 0;
 
         zeus_insert_list(p->connection,node);
 
@@ -313,10 +314,11 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         conn->rd->connection = conn;
 
     }
-
+    
     conn->fd = p->channel[p->pidx][0];
     conn->rd->handler = zeus_event_io_read;
     conn->rdstatus = ZEUS_EVENT_ON;
+    conn->quiting = 0;
 
     zeus_insert_list(p->connection,node);
     

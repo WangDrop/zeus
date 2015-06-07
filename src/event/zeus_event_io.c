@@ -59,13 +59,9 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
             }
         }else if(current_read_sz == 0){
 
-            // TODO
+            ev->connection->quiting = 1;
 
-            // check the buffer and move all
-            // then shutdown the connection
-            // do recycle work
-            
-            return ZEUS_OK;
+            break;    
         
         }else if(current_read_sz < current_left_sz){
 
@@ -90,7 +86,7 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
     
     }
     
-    if(ev->buflen > ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE){
+    while(ev->buflen > ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE){
         if(zeus_proto_solve_read_buf(p,ev) == ZEUS_ERROR){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process solve read buffer and do operation error", \
                                                  p->pidx?"worker":"gateway");
@@ -98,6 +94,10 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
             // recyle things
             return ZEUS_ERROR;
         }
+    }
+
+    if(ev->connection->quiting == 1){
+        zeus_helper_close_connection(p,ev->connection);
     }
     
     return ZEUS_OK;
@@ -136,6 +136,9 @@ zeus_status_t zeus_event_io_write(zeus_process_t *p,zeus_event_t *ev){
         }else{
             current_buf->current = zeus_addr_add(current_buf->current,current_write_sz);
             ev->buflen -= current_write_sz;
+            if(lnode->next){
+                lnode->next->prev = NULL;
+            }
             ev->buffer->head = lnode->next;
             if(!ev->buffer->head){
                 ev->buffer->tail = NULL;

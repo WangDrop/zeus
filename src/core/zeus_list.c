@@ -37,6 +37,7 @@ zeus_list_data_t *zeus_create_list_data_node(zeus_memory_pool_t *pool,zeus_log_t
     }
 
     alloc_data->next = NULL;
+    alloc_data->prev = NULL;
     alloc_data->d = NULL;
 
     return alloc_data;
@@ -47,10 +48,12 @@ void zeus_insert_list(zeus_list_t *l,zeus_list_data_t *ld){
 
     if(l->head == l->tail && l->head == NULL){
         l->head = l->tail = ld;
+        ld->prev = NULL;
         ld->next = NULL;
     }else{
         ld->next = l->tail->next;
         l->tail->next = ld;
+        ld->prev = l->tail;
         l->tail = ld;
     }
 

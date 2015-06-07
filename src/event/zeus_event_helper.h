@@ -11,11 +11,12 @@
 
 #include "../core/zeus_common.h"
 
-zeus_status_t zeus_helper_add_event(zeus_process_t *p,zeus_connection_t *);
-zeus_status_t zeus_helper_del_event(zeus_process_t *p,zeus_connection_t *);
-zeus_status_t zeus_helper_mod_event(zeus_process_t *p,zeus_connection_t *);
+zeus_status_t zeus_helper_add_event(zeus_process_t *,zeus_connection_t *);
+zeus_status_t zeus_helper_del_event(zeus_process_t *,zeus_connection_t *);
+zeus_status_t zeus_helper_mod_event(zeus_process_t *,zeus_connection_t *);
+zeus_status_t zeus_helper_close_connection(zeus_process_t *,zeus_connection_t *);
 
-zeus_idx_t zeus_helper_find_load_lowest(zeus_process_t *p);
+zeus_idx_t zeus_helper_find_load_lowest(zeus_process_t *);
 
 
 #endif

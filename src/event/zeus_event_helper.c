@@ -53,7 +53,6 @@ zeus_status_t zeus_helper_add_event(zeus_process_t *p,zeus_connection_t *conn){
 }
 
 zeus_status_t zeus_helper_del_event(zeus_process_t *p,zeus_connection_t *conn){
-   
 
     if(epoll_ctl(p->epfd,EPOLL_CTL_DEL,conn->fd,NULL) == -1){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process del event error in epoll_ctl : %s",
@@ -68,7 +67,6 @@ zeus_status_t zeus_helper_del_event(zeus_process_t *p,zeus_connection_t *conn){
 zeus_status_t zeus_helper_mod_event(zeus_process_t *p,zeus_connection_t *conn){
     
     zeus_event_timer_rbnode_t *rbnode;
-    zeus_list_data_t *tbuf;
     zeus_epoll_event_t epev;
 
     if(conn->rdstatus == ZEUS_EVENT_OFF){
@@ -78,19 +76,11 @@ zeus_status_t zeus_helper_mod_event(zeus_process_t *p,zeus_connection_t *conn){
                 rbnode = conn->rd->timeout_rbnode;
                 conn->rd->timeout_rbnode = NULL;
                 if(zeus_event_timer_rbtree_delete(p->timer,rbnode) == ZEUS_ERROR){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process delete rbnode in zeus_helper_del_event error",\
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process delete rbnode in zeus_helper_mod_event error",\
                                   (p->pidx)?"worker":"gateway");
                     return ZEUS_ERROR;
                 }
                 zeus_recycle_event_timer_rbnode_to_pool(p->timer,rbnode);
-            }
-            while(conn->rd->buffer->head){
-                tbuf = conn->rd->buffer->head;
-                conn->rd->buffer->head = tbuf->next;
-                if(conn->rd->buffer->head == NULL){
-                    conn->rd->buffer->tail = NULL;
-                }
-                zeus_recycle_buffer_list_node_to_pool(p,tbuf);
             }
         }
     }
@@ -107,14 +97,6 @@ zeus_status_t zeus_helper_mod_event(zeus_process_t *p,zeus_connection_t *conn){
                     return ZEUS_ERROR;
                 }
                 zeus_recycle_event_timer_rbnode_to_pool(p->timer,rbnode);
-            }
-            while(conn->wr->buffer->head){
-                tbuf = conn->wr->buffer->head;
-                conn->wr->buffer->head = tbuf->next;
-                if(conn->wr->buffer->head == NULL){
-                    conn->wr->buffer->tail = NULL;
-                }
-                zeus_recycle_buffer_list_node_to_pool(p,tbuf);
             }
         }
     }
@@ -160,6 +142,51 @@ zeus_status_t zeus_helper_mod_event(zeus_process_t *p,zeus_connection_t *conn){
 
     }
 
+    return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_helper_close_connection(zeus_process_t *p,zeus_connection_t* conn){
+
+    zeus_list_data_t *node = conn->node;
+
+    conn->rdstatus = ZEUS_EVENT_OFF;
+    conn->wrstatus = ZEUS_EVENT_OFF;
+    
+    if(zeus_helper_mod_event(p,conn) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process close connection error when del event",\
+                                             (p->pidx)?"worker":"gateway");
+        return ZEUS_ERROR;
+    }
+    
+    if(shutdown(conn->fd,SHUT_RDWR) == -1){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process close connection error when shutdown fd",\
+                                             (p->pidx)?"worker":"gateway");
+        return ZEUS_ERROR;
+    }
+    
+    // TODO 
+    // Check manage connection list
+    if(p->connection->head == node){
+        p->connection->head = node->next;
+    }else{
+        if(node->prev){
+            node->prev->next = node->next;
+        }
+        if(node->next){
+            node->next->prev = node->prev;
+        }
+        node->prev = node->next = NULL;
+    }
+    
+    if(zeus_recycle_connection_list_node_to_pool(p,conn->node) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process close connection error when recycle connection list node",\
+                                             (p->pidx)?"worker":"gateway");
+        return ZEUS_ERROR;
+    }
+
+
+    
     return ZEUS_OK;
 
 }

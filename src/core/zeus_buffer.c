@@ -46,6 +46,7 @@ zeus_list_data_t *zeus_create_buffer_list_node(zeus_process_t *process){
 
     alloc_node->d = alloc_buffer_head;
     alloc_node->next = NULL;
+    alloc_node->prev = NULL;
     
     return alloc_node;
 
@@ -58,6 +59,7 @@ zeus_list_data_t *zeus_get_buffer_list_node_from_pool(zeus_process_t *process){
     p = process->buffer_pool;
     process->buffer_pool = p->next;
     p->next = NULL;
+    p->prev = NULL;
 
     return p;
 
@@ -71,6 +73,7 @@ zeus_status_t zeus_recycle_buffer_list_node_to_pool(zeus_process_t *process,zeus
     p->current = p->start;
     p->last = p->start;
     
+    z->prev = NULL;
     z->next = process->buffer_pool;
     process->buffer_pool = z;
     
