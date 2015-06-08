@@ -13,6 +13,11 @@
 
 #include "../core/zeus_common.h"
 
+struct zeus_event_io_trans_socket_s{
+    struct cmsghdr cmsg;
+    int fd;
+};
+
 zeus_status_t zeus_event_io_read(zeus_process_t *,zeus_event_t *);
 
 zeus_status_t zeus_event_io_write(zeus_process_t *,zeus_event_t *);

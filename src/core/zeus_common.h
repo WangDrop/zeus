@@ -28,6 +28,7 @@
 #include <arpa/inet.h>
 #include <sys/epoll.h>
 #include <sys/wait.h>
+#include <sys/uio.h>
 
 typedef unsigned long zeus_ulong_t;
 typedef unsigned char zeus_uchar_t;
@@ -75,6 +76,7 @@ typedef struct zeus_signal_s zeus_signal_t;
 typedef struct zeus_event_s zeus_event_t;
 typedef struct zeus_event_timer_rbnode_s zeus_event_timer_rbnode_t;
 typedef struct zeus_event_timer_rbtree_s zeus_event_timer_rbtree_t;
+typedef struct zeus_event_io_trans_socket_s zeus_event_io_trans_socket_t;
 
 
 #include "../../build_/zeus_build.h"

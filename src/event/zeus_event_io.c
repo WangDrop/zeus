@@ -267,16 +267,130 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
 
 }
 
-
 zeus_status_t zeus_event_io_send_socket(zeus_process_t *p,zeus_event_t *ev){
 
+    zeus_event_io_trans_socket_t trans_socket;
+    struct msghdr msg;
+
+    zeus_list_data_t *node;
+    node = ev->buffer->head;
+
+    struct iovec iov[1];
+    zeus_char_t buf[1] = {0};
+    iov[0].iov_base = (void *)buf;
+    iov[0].iov_len = 1;
+
+    if(node == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_NOTICE,"the sending connection list is empty");
+        return ZEUS_OK;
+    }
+
+    ev->buflen -= 1;
+
+    if(node->next == NULL){
+        ev->buffer->head = ev->buffer->tail = NULL;
+    }else{
+        node->next->prev = NULL;
+        ev->buffer->head = node->next;
+    }
+    
+    node->next = node->prev = NULL;
+
+
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 1;
+    msg.msg_flags = 0;
+    
+    trans_socket.cmsg.cmsg_level = SOL_SOCKET;
+    trans_socket.cmsg.cmsg_type = SCM_RIGHTS;
+    trans_socket.cmsg.cmsg_len = CMSG_LEN(sizeof(int));
+
+    msg.msg_control = (void *)&trans_socket.cmsg;
+    msg.msg_controllen = CMSG_LEN(sizeof(int));
+
+    *(zeus_int_t *)CMSG_DATA(&trans_socket.cmsg) = ((zeus_connection_t *)(node->d))->fd;
+    
+    if(sendmsg(ev->connection->fd,&msg,0) == -1){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"send file descriptor error : %s",strerror(errno));
+        return ZEUS_ERROR;
+    }
+/*
+    zeus_helper_close_connection(p,(zeus_connection_t *)node->d);
+*/
+    if(ev->buflen == 0){
+        ev->connection->wrstatus = ZEUS_EVENT_OFF;
+        zeus_helper_mod_event(p,ev->connection);
+    }
+    
     return ZEUS_OK;
 
 }
 
 
 zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
+    
+    zeus_event_io_trans_socket_t trans_socket;
+    struct msghdr msg;
 
+    zeus_list_data_t *node;
+    zeus_connection_t *conn;
+    
+    struct iovec iov[1];
+    zeus_char_t buf[1];
+    iov[0].iov_base = (void *)buf;
+    iov[0].iov_len = 1;
+
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 1;
+    msg.msg_flags = 0;
+    
+    msg.msg_control = (void *)&trans_socket.cmsg;
+    msg.msg_controllen = CMSG_LEN(sizeof(int));
+
+    if(recvmsg(ev->connection->fd,&msg,0) == -1){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"recv socket fd error : %s",strerror(errno));
+        return ZEUS_ERROR;
+    }
+
+    if((node = zeus_create_connection_list_node(p)) == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"create new connection list node error");
+        return ZEUS_ERROR;
+    }
+    
+    conn = (zeus_connection_t *)(node->d);
+    conn->fd = *(zeus_int_t *)CMSG_DATA(&trans_socket.cmsg);
+    conn->quiting = 0;
+
+    write(conn->fd,"a",1);
+
+    if(fcntl(conn->fd,F_SETFL,O_NONBLOCK) == -1){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"set new connection nonblock error : %s",strerror(errno));
+        return ZEUS_ERROR;
+    }
+
+
+    if(!conn->rd){
+        conn->rd = zeus_create_event(p);
+        if(!conn->rd){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"create new connection read event error");
+            return ZEUS_ERROR;
+        }
+    }
+    
+    conn->rdstatus = ZEUS_EVENT_ON;
+    conn->rd->handler = zeus_event_io_read;
+
+    if(zeus_helper_add_event(p,conn) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"add new connection read event error");
+        return ZEUS_ERROR;
+    }
+
+    zeus_insert_list(p->connection,node);
+    
     return ZEUS_OK;
 
 }

@@ -49,6 +49,7 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                     zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s:%hd is an admin client",\
                                    ev->connection->addr_string->data,ntohs(ev->connection->peer->sin_port));
                     worker_idx = *(zeus_idx_t *)&(client_check_data[ZEUS_PROTO_CLIENT_CHECKOUT_STRING_SIZE_MAX]);
+                    worker_idx = ntohl(worker_idx);
 
                     if(worker_idx > p->worker || worker_idx < 1)
                         goto worker_idx_error;
