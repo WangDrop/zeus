@@ -365,8 +365,6 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
     conn->fd = *(zeus_int_t *)CMSG_DATA(&trans_socket.cmsg);
     conn->quiting = 0;
 
-    write(conn->fd,"a",1);
-
     if(fcntl(conn->fd,F_SETFL,O_NONBLOCK) == -1){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"set new connection nonblock error : %s",strerror(errno));
         return ZEUS_ERROR;
@@ -383,6 +381,7 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
     
     conn->rdstatus = ZEUS_EVENT_ON;
     conn->rd->handler = zeus_event_io_read;
+    conn->rd->connection = conn;
 
     if(zeus_helper_add_event(p,conn) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"add new connection read event error");
