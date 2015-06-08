@@ -62,9 +62,7 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                     
                 }
                 
-                // TODO
-                // write event
-                // zeus_event_io_send_socket
+                zeus_helper_trans_socket(p,ev->connection,worker_idx);
                 
                 break;
 
