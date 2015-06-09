@@ -134,13 +134,7 @@ zeus_status_t zeus_event_io_write(zeus_process_t *p,zeus_event_t *ev){
         }else{
             current_buf->current = zeus_addr_add(current_buf->current,current_write_sz);
             ev->buflen -= current_write_sz;
-            if(lnode->next){
-                lnode->next->prev = NULL;
-            }
-            ev->buffer->head = lnode->next;
-            if(!ev->buffer->head){
-                ev->buffer->tail = NULL;
-            }
+            zeus_delete_list(ev->buffer,lnode);
             zeus_recycle_buffer_list_node_to_pool(p,lnode);
         }
     }
@@ -305,7 +299,7 @@ zeus_status_t zeus_event_io_send_socket(zeus_process_t *p,zeus_event_t *ev){
     msg.msg_controllen = CMSG_LEN(sizeof(int));
 
     *(zeus_int_t *)CMSG_DATA(&trans_socket.cmsg) = ((zeus_connection_t *)(node->d))->fd;
-    
+
     if(sendmsg(ev->connection->fd,&msg,0) == -1){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"send file descriptor error : %s",strerror(errno));
         return ZEUS_ERROR;
@@ -334,6 +328,8 @@ zeus_status_t zeus_event_io_send_socket(zeus_process_t *p,zeus_event_t *ev){
         ev->connection->wrstatus = ZEUS_EVENT_OFF;
         zeus_helper_mod_event(p,ev->connection);
     }
+
+    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"gateway process have send a socket file descriptor to worker");
 
     return ZEUS_OK;
 
@@ -405,6 +401,17 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate send back trans socket ack packet error");
         return ZEUS_ERROR;
     }
+
+    ev->connection->wrstatus = ZEUS_EVENT_ON;
+
+    if(zeus_helper_mod_event(p,ev->connection) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"set send back trans socket ack packet error");
+        return ZEUS_ERROR;
+    }
+
+    p->worker_load[p->pidx] += 1;
+
+    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"worker process have recv a socket file descriptor from gateway");
     
     return ZEUS_OK;
 

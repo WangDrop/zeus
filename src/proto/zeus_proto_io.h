@@ -13,6 +13,6 @@
 zeus_status_t zeus_proto_buffer_write_byte(zeus_process_t *,zeus_event_t *,zeus_char_t);
 zeus_status_t zeus_proto_buffer_write_uint(zeus_process_t *,zeus_event_t *,zeus_uint_t);
 zeus_status_t zeus_proto_buffer_write_byte_array(zeus_process_t *,zeus_event_t *,zeus_char_t *,zeus_size_t);
-
+zeus_status_t zeus_proto_buffer_read_uint(zeus_process_t *,zeus_event_t *,zeus_uint_t *);
 
 #endif

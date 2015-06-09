@@ -304,8 +304,8 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         conn->rd->handler = zeus_event_io_accept;
         conn->rdstatus = ZEUS_EVENT_ON;
         conn->quiting = 0;
-
-        zeus_insert_list(p->connection,node);
+        
+        p->listen_connection_node = node;
 
         for(idx = 0 ; idx < p->worker ; ++ idx){
             if((node = zeus_create_connection_list_node(p)) == NULL){
@@ -400,6 +400,14 @@ zeus_status_t zeus_event_init_epoll(zeus_process_t *p){
 
         cnode = cnode->next;
 
+    }
+
+    if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
+        conn = (zeus_connection_t *)(p->listen_connection_node->d);
+        if(zeus_helper_add_event(p,conn) == ZEUS_ERROR){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process add listenfd event error");
+            return ZEUS_ERROR;
+        }
     }
 
     return ZEUS_OK;

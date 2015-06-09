@@ -43,6 +43,40 @@ zeus_status_t zeus_proto_buffer_write_byte(zeus_process_t *p,zeus_event_t *ev,ze
 
 }
 
+zeus_status_t zeus_proto_buffer_read_uint(zeus_process_t *p,zeus_event_t *ev,zeus_uint_t *i){
+    
+    zeus_list_data_t *tbuf;
+    zeus_buffer_t *b;
+
+    zeus_size_t leftrd = sizeof(zeus_uint_t);
+    zeus_size_t leftsz;
+    
+    while(leftrd){
+        tbuf = ev->buffer->head;
+        b = (zeus_buffer_t *)tbuf->d;
+        leftsz = zeus_addr_delta(b->last,b->current);
+        if(leftsz >= leftrd){
+            zeus_memcpy((zeus_char_t *)zeus_addr_add((zeus_char_t *)i,sizeof(zeus_uint_t) - leftrd),b->current,leftrd);
+            b->current = zeus_addr_add(b->current,leftrd);
+            ev->buflen -= leftrd;
+            leftrd = 0;
+            if(b->current == b->last){
+                zeus_delete_list(ev->buffer,tbuf);
+                zeus_recycle_buffer_list_node_to_pool(p,tbuf);
+            }
+        }else{
+            zeus_memcpy((zeus_char_t *)zeus_addr_add((zeus_char_t *)i,sizeof(zeus_uint_t) - leftsz),b->current,leftsz);
+            leftrd -= leftsz;
+            b->current = zeus_addr_add(b->current,leftsz);
+            ev->buflen -= leftsz;
+            zeus_delete_list(ev->buffer,tbuf);
+            zeus_recycle_buffer_list_node_to_pool(p,tbuf);
+        }
+    }
+
+    return ZEUS_OK;
+}
+
 zeus_status_t zeus_proto_buffer_write_uint(zeus_process_t *p,zeus_event_t *ev,zeus_uint_t i){
     
     zeus_list_data_t *tbuf;

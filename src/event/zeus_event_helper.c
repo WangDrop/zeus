@@ -211,7 +211,7 @@ zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn
     if(!r){
         goto connection_error;
     }
-
+    
     while(idx --){
         if(!r->next){
             goto connection_error;
@@ -237,14 +237,14 @@ zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn
     
     zeus_insert_list(c->wr->buffer,node);
     c->wr->buflen += 1;
-
+    
     if(zeus_helper_mod_event(p,c) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"set trans socket event error");
         return ZEUS_ERROR;
     }
 
     return ZEUS_OK;
-
+    
 connection_error:
     zeus_write_log(p->log,ZEUS_LOG_ERROR,"something wrong with connection list");
     return ZEUS_ERROR;
@@ -255,5 +255,29 @@ zeus_status_t zeus_helper_move_to_closing_connection_list(zeus_process_t *p,zeus
 
     zeus_list_data_t *node = conn->node;
     zeus_insert_list(p->closing_connection[idx],node);
+    return ZEUS_OK;
 
+}
+
+zeus_status_t zeus_helper_unlink_connection_at_closing_list(zeus_process_t *p,zeus_idx_t idx){
+    
+    zeus_connection_t *conn;
+    zeus_list_data_t *node = p->closing_connection[idx]->head;
+    
+    if(node == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"closing connection list at index %d is empty",idx);
+        return ZEUS_ERROR;
+    }
+
+    zeus_delete_list(p->closing_connection[idx],node);
+    
+    conn = (zeus_connection_t *)node->d;
+    if(close(conn->fd) == -1){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"closing the socket fd at closing list error : %s",strerror(errno));
+        return ZEUS_ERROR;
+    }
+
+    zeus_recycle_connection_list_node_to_pool(p,node);
+    
+    return ZEUS_OK;
 }

@@ -29,6 +29,10 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
     zeus_idx_t worker_idx;
     /* ZEUS_PROTO_CLIENT_CHECKOUT_INS */
 
+    /* ZEUS_PROTO_TRANS_SOCKET_ACK_INS */
+    zeus_idx_t idx;
+    /* ZEUS_PROTO_TRANS_SOCKET_ACK_INS */
+
     zeus_proto_helper_get_opcode_and_pktlen(ev,&opcode,&len);
 
     if(ev->buflen - ZEUS_PROTO_OPCODE_SIZE - ZEUS_PROTO_DATA_LEN_SIZE >= len){
@@ -43,7 +47,7 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
             case ZEUS_PROTO_CLIENT_CHECKOUT_INS:
                 
                 if(len != ZEUS_PROTO_CLIENT_CHECKOUT_STRING_SIZE_MAX + ZEUS_PROTO_TRANS_SIZE)
-                    goto solve_error;
+                    goto len_error;
 
                 zeus_proto_helper_cp_data_from_buf_to_carr(p,                \
                                                            ev,               \
@@ -79,6 +83,32 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                 
                 break;
 
+            case ZEUS_PROTO_TRANS_SOCKET_ACK_INS:
+
+                if(ev->connection->peer){
+                    goto solve_error;
+                }
+
+                if(len != ZEUS_PROTO_IDX_SIZE){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"wrong channel index");
+                    return ZEUS_ERROR;
+                }
+
+                if(zeus_proto_helper_get_channel_index(p,ev,&idx) == ZEUS_ERROR){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"get channel index error");
+                    return ZEUS_ERROR;
+                }
+
+                idx = ntohl(idx);
+
+                zeus_write_log(p->log,ZEUS_LOG_NOTICE,"recv socket ack from channel %d",idx);
+
+                p->worker_load[idx] -= 1;
+
+                zeus_helper_unlink_connection_at_closing_list(p,idx);
+
+                break;
+
             default:
 
                 goto solve_error;
@@ -94,6 +124,12 @@ solve_error:
                                          ntohs(ev->connection->peer->sin_port),     \
                                          opcode);
     zeus_helper_close_connection(p,ev->connection);
+    return ZEUS_ERROR;
+len_error:
+    zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s:%hu send a wrong len : %d",            \
+                                         ev->connection->addr_string->data,         \
+                                         ntohs(ev->connection->peer->sin_port),     \
+                                         len);
     return ZEUS_ERROR;
 worker_idx_error:
     zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s:%hu admin client send wrong worker index %d", \

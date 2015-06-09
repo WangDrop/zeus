@@ -49,24 +49,43 @@ zeus_status_t zeus_proto_helper_generate_trans_socket_ack_packet(zeus_process_t 
 
 void zeus_proto_helper_get_opcode_and_pktlen(zeus_event_t *ev,zeus_uchar_t *opcode,zeus_uint_t *len){
     
-    zeus_size_t idx;
     zeus_size_t leftsize;
-    zeus_size_t len_current;
+    zeus_list_data_t *node = ev->buffer->head;
     zeus_buffer_t *buf = (zeus_buffer_t *)ev->buffer->head->d;
+    zeus_char_t *c;
 
-    *opcode = *(zeus_uchar_t *)(buf->current);
+    zeus_size_t sz = sizeof(zeus_uint_t);
+    
     leftsize = zeus_addr_delta(buf->last,buf->current);
-    if(leftsize > ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE){
-        *len = *(zeus_uint_t *)zeus_addr_add(buf->current,ZEUS_PROTO_OPCODE_SIZE);
+
+    if(leftsize >= sizeof(zeus_char_t)){
+        *opcode = *(zeus_uchar_t *)(buf->current);
+    }else{
+        node = node->next;
+        buf = (zeus_buffer_t *)node->d;
+        *opcode = *(zeus_uchar_t *)(buf->current);
+    }
+    c = (zeus_char_t *)zeus_addr_add(buf->current,sizeof(zeus_char_t));
+    
+    leftsize = zeus_addr_delta(buf->last,c);
+
+    if(leftsize > ZEUS_PROTO_DATA_LEN_SIZE){
+        *len = *(zeus_uint_t *)c;
         *len = (zeus_uint_t)ntohl(*len);
     }else{
-        len_current = leftsize - ZEUS_PROTO_OPCODE_SIZE;
-        for(idx = 0 ; idx < len_current ; ++ idx){
-            *(zeus_uchar_t *)zeus_addr_add(len,idx) = *(zeus_uchar_t *)zeus_addr_add(buf->current,ZEUS_PROTO_OPCODE_SIZE + idx);
-        }
-        buf = (zeus_buffer_t *)ev->buffer->head->next->d;
-        for(idx = 0 ; idx < ZEUS_PROTO_DATA_LEN_SIZE ; ++ idx){
-            *(zeus_uchar_t *)zeus_addr_add(len,(len_current + idx)) = *(zeus_uchar_t *)zeus_addr_add(buf->current,idx);
+        while(sz > 0){
+            leftsize = zeus_addr_delta(buf->last,c);
+            if(leftsize >= sz){
+                zeus_memcpy((zeus_char_t *)zeus_addr_add(len,sizeof(zeus_uint_t) - sz),c,sz);
+                c = (zeus_char_t *)zeus_addr_add(c,sz);
+                sz = 0;
+            }else{
+                zeus_memcpy((zeus_char_t *)zeus_addr_add(len,sizeof(zeus_uint_t) - sz),c,leftsize);
+                sz -= leftsize;
+                node = node->next;
+                buf = (zeus_buffer_t *)node->d;
+                c = (zeus_char_t *)buf->current;
+            }
         }
     }
     
@@ -84,59 +103,52 @@ zeus_status_t zeus_proto_helper_check_hash(zeus_string_t *s,zeus_char_t *cbuf,ze
 
 }
 
+void zeus_proto_helper_move_forward_opcode_and_pklen(zeus_process_t *p,zeus_event_t *ev){
+    
+    zeus_size_t leftsz;
+    zeus_size_t opcode_and_len = ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE;
+    zeus_list_data_t *q;
+    zeus_buffer_t *buf;
+
+    while(opcode_and_len > 0){
+
+        q = ev->buffer->head;
+        buf = (zeus_buffer_t *)q->d;
+        leftsz = zeus_addr_delta(buf->last,buf->current);
+        if(leftsz >= opcode_and_len){
+            buf->current = zeus_addr_add(buf->current,opcode_and_len);
+            ev->buflen -= opcode_and_len;
+            opcode_and_len = 0;
+            if(buf->current == buf->last){
+                zeus_delete_list(ev->buffer,q);
+                zeus_recycle_buffer_list_node_to_pool(p,q);
+            }
+        }else{
+            buf->current = zeus_addr_add(buf->current,leftsz);
+            ev->buflen -= leftsz;
+            opcode_and_len -= leftsz;
+            zeus_delete_list(ev->buffer,q);
+            zeus_recycle_buffer_list_node_to_pool(p,q);
+        }
+    }
+
+    return ;
+
+}
+
 void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *ev,zeus_char_t *cbuf,zeus_size_t sz){
 
     zeus_size_t leftsz;
     zeus_buffer_t *buf;
     zeus_list_data_t *q;
     zeus_char_t *r = cbuf;
-
-    zeus_uint_t ignore_opcode_and_len = 1;
-    zeus_size_t opcode_add_len = ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE;
-
-    ev->buflen -= opcode_add_len;
+    
+    zeus_proto_helper_move_forward_opcode_and_pklen(p,ev);
     
     while(sz > 0){
 
         q = ev->buffer->head;
         buf = (zeus_buffer_t *)(q->d);
-
-        if(ignore_opcode_and_len){
-            while(opcode_add_len > 0){
-                leftsz = zeus_addr_delta(buf->last,buf->current);
-                if(leftsz >= opcode_add_len){
-                    buf->current = zeus_addr_add(buf->current,opcode_add_len);
-                    opcode_add_len = 0;
-                    if(buf->current == buf->last){
-                        if(q->next){
-                            q->next->prev = NULL;
-                        }
-                        ev->buffer->head = q->next;
-                        if(!ev->buffer->head){
-                            ev->buffer->tail = NULL;
-                        }
-                        zeus_recycle_buffer_list_node_to_pool(p,q);
-                        q = ev->buffer->head;
-                        buf = (zeus_buffer_t *)(q->d);
-                    }
-                }else{
-                    buf->current = zeus_addr_add(buf->current,leftsz);
-                    opcode_add_len -= leftsz;
-                    if(q->next){
-                        q->next->prev = NULL;
-                    }
-                    ev->buffer->head = q->next;
-                    if(!ev->buffer->head){
-                        ev->buffer->tail = NULL;
-                    }
-                    zeus_recycle_buffer_list_node_to_pool(p,q);
-                    q = ev->buffer->head;
-                    buf = (zeus_buffer_t *)(q->d);
-                }
-            }
-            ignore_opcode_and_len = 0;
-        }
-
         leftsz = zeus_addr_delta(buf->last,buf->current);
 
         if(leftsz >= sz){
@@ -146,13 +158,7 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
             ev->buflen -= sz;
             sz = 0;
             if(buf->current == buf->last){
-                if(q->next){
-                    q->next->prev = NULL;
-                }
-                ev->buffer->head = q->next;
-                if(!ev->buffer->head){
-                    ev->buffer->tail = NULL;
-                }
+                zeus_delete_list(ev->buffer,q);
                 zeus_recycle_buffer_list_node_to_pool(p,q);
             }
 
@@ -162,13 +168,7 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
             r = (zeus_char_t *)zeus_addr_add(r,leftsz);
             sz -= leftsz;
             ev->buflen -= sz;
-            if(q->next){
-                q->next->prev = NULL;
-            }
-            ev->buffer->head = q->next;
-            if(!ev->buffer->head){
-                ev->buffer->tail = NULL;
-            }
+            zeus_delete_list(ev->buffer,q);
             zeus_recycle_buffer_list_node_to_pool(p,q);
 
         }
@@ -176,5 +176,15 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
     }
 
     return ;
+
+}
+
+zeus_status_t zeus_proto_helper_get_channel_index(zeus_process_t *p,zeus_event_t *ev,zeus_idx_t *idx){
+
+    
+    zeus_proto_helper_move_forward_opcode_and_pklen(p,ev);
+
+    return zeus_proto_buffer_read_uint(p,ev,(zeus_uint_t *)idx);
+
 
 }

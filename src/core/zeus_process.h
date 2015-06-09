@@ -26,7 +26,7 @@ struct zeus_process_s{
     zeus_log_t *old;
     zeus_log_t *save;
 
-	
+	zeus_list_data_t *listen_connection_node;
 	
     zeus_uid_t uid;
     zeus_gid_t gid;
@@ -37,7 +37,6 @@ struct zeus_process_s{
     zeus_fd_t pid_run_flag_fd;
     zeus_uint_t max_connection;
     zeus_string_t *manage_passwd;
-
 
     zeus_pid_t pid;
     /* -1 means master , 0 means gateway*/
