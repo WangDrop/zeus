@@ -167,18 +167,18 @@ zeus_status_t zeus_helper_close_connection(zeus_process_t *p,zeus_connection_t* 
     
     // TODO 
     // Check manage connection list
-    
-    if(p->connection->head == node){
-        p->connection->head = node->next;
-    }else{
-        if(node->prev){
-            node->prev->next = node->next;
-        }
-        if(node->next){
-            node->next->prev = node->prev;
-        }
-        node->prev = node->next = NULL;
+   
+    if(p->connection->tail == node){
+        p->connection->tail = node->prev;
     }
+    if(node->prev){
+        node->prev->next = node->next;
+    }
+    if(node->next){
+        node->next->prev = node->prev;
+    }
+    node->prev = node->next = NULL;
+    
     
     if(zeus_recycle_connection_list_node_to_pool(p,conn->node) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process close connection error when recycle connection list node",\
@@ -195,10 +195,10 @@ zeus_idx_t zeus_helper_find_load_lowest(zeus_process_t *p){
     
     zeus_int_t idx;
 
-    zeus_uint_t mval = p->worker_load[ZEUS_DATA_GATEWAY_PROCESS_INDEX + 1];
-    zeus_idx_t loc = ZEUS_DATA_GATEWAY_PROCESS_INDEX + 1;
+    zeus_uint_t mval = p->worker_load[0];
+    zeus_idx_t loc = 0;
 
-    for(idx = ZEUS_DATA_GATEWAY_PROCESS_INDEX + 1 ; idx < ZEUS_DATA_GATEWAY_PROCESS_INDEX + p->worker ; ++ idx){
+    for(idx = 0 ; idx < p->worker ; ++ idx){
 
         if(mval > p->worker_load[idx]){
             mval = p->worker_load[idx];
@@ -219,11 +219,6 @@ zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn
     
     if(!r){
         goto connection_error;
-    }else{
-        r = r->next;
-        if(!r){
-            goto connection_error;
-        }
     }
 
     while(idx --){
@@ -235,7 +230,10 @@ zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn
             goto connection_error;
         }
     }
-
+    
+    if(node == p->connection->tail){
+        p->connection->tail = node->prev;
+    }
     if(node->prev){
         node->prev->next = node->next;
     }
@@ -250,7 +248,7 @@ zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn
     zeus_insert_list(c->wr->buffer,node);
     c->wr->buflen += 1;
 
-    if(zeus_helper_add_event(p,c) == ZEUS_ERROR){
+    if(zeus_helper_mod_event(p,c) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"set trans socket event error");
         return ZEUS_ERROR;
     }

@@ -31,6 +31,10 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
 
         current_left_sz = zeus_addr_delta(current_buf->end,current_buf->last);
 
+        if(current_read_cnt ++ == ZEUS_READ_MAX_TIME_CNT){
+            break;
+        }
+
         if(current_left_sz == 0){
 
             if((lnode = zeus_create_buffer_list_node(p)) == NULL){
@@ -45,10 +49,6 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
         
         }
         
-        if(current_read_cnt ++ == ZEUS_READ_MAX_TIME_CNT){
-            break;
-        }
-
         if((current_read_sz = read(ev->connection->fd,current_buf->last,current_left_sz)) == -1){
             terrno = errno;
             if(terrno == EAGAIN || terrno == EWOULDBLOCK || terrno == EINTR){
@@ -238,7 +238,7 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
         return ZEUS_ERROR;
     }
     
-    p->worker_load[p->pidx] += 1;
+    //p->worker_load[p->pidx] += 1;
 
     if(!tconn->wr){
         if((tconn->wr = zeus_create_event(p)) == NULL){
@@ -323,7 +323,7 @@ zeus_status_t zeus_event_io_send_socket(zeus_process_t *p,zeus_event_t *ev){
         ev->connection->wrstatus = ZEUS_EVENT_OFF;
         zeus_helper_mod_event(p,ev->connection);
     }
-    
+
     return ZEUS_OK;
 
 }
@@ -389,7 +389,7 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
     }
 
     zeus_insert_list(p->connection,node);
-    
+
     return ZEUS_OK;
 
 }

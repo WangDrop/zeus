@@ -45,16 +45,15 @@ zeus_status_t zeus_proto_buffer_write_byte(zeus_process_t *p,zeus_event_t *ev,ze
 
 zeus_status_t zeus_proto_buffer_write_uint(zeus_process_t *p,zeus_event_t *ev,zeus_uint_t i){
     
-    // TODO
-    // UPDATE TO BYTE WRITE ONE BY ONE
-
     zeus_list_data_t *tbuf;
     zeus_buffer_t *b;
-    zeus_uint_t *iwrite;
+
+    zeus_size_t leftwr = sizeof(zeus_uint_t);
+    zeus_size_t leftsz;
 
     if(!ev->buffer->tail){
         if((tbuf = zeus_create_buffer_list_node(p)) == NULL){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"create buffer node error in zeus_proto_buffer_write_int");
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"create buffer node error in zeus_proto_buffer_write_uint");
             return ZEUS_ERROR;
         }
         zeus_insert_list(ev->buffer,tbuf);
@@ -63,21 +62,29 @@ zeus_status_t zeus_proto_buffer_write_uint(zeus_process_t *p,zeus_event_t *ev,ze
     tbuf = ev->buffer->tail;
     b = (zeus_buffer_t *)(tbuf->d);
 
-    if(zeus_addr_delta(b->end,b->last) < sizeof(zeus_uint_t)){
-        if((tbuf = zeus_create_buffer_list_node(p)) == NULL){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"create buffer node error in zeus_proto_buffer_write_int");
-            return ZEUS_ERROR;
-        }
-        zeus_insert_list(ev->buffer,tbuf);
-        tbuf = ev->buffer->tail;
-        b = (zeus_buffer_t *)(tbuf->d);
-    }
-
     i = htonl(i);
-    iwrite = (zeus_uint_t *)(b->last);
-    *iwrite = i;
-    b->last= zeus_addr_add(b->last,sizeof(zeus_uint_t));
-    ev->buflen += sizeof(zeus_uint_t);
+
+    while(leftwr > 0){
+        leftsz = zeus_addr_delta(b->end,b->last);
+        if(leftsz >= leftwr){
+            zeus_memcpy(b->last,zeus_addr_add(&i,sizeof(zeus_uint_t) - leftwr),leftwr);
+            b->last = zeus_addr_add(b->last,leftwr);
+            ev->buflen += leftwr;
+            leftwr = 0;
+        }else{
+            zeus_memcpy(b->last,zeus_addr_add(&i,sizeof(zeus_uint_t) - leftwr),leftsz);
+            b->last = zeus_addr_add(b->last,leftsz);
+            ev->buflen += leftsz;
+            leftwr -= leftsz;
+            if((tbuf = zeus_create_buffer_list_node(p)) == NULL){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"create buffer node error in zeus_proto_buffer_write_uint");
+                return ZEUS_ERROR;
+            }
+            zeus_insert_list(ev->buffer,tbuf);
+            tbuf = ev->buffer->tail;
+            b = (zeus_buffer_t *)(tbuf->d);
+        }
+    }
 
     return ZEUS_OK;
 

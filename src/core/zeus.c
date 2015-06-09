@@ -6,9 +6,9 @@
 #include "zeus.h"
 
 zeus_process_t *process;
-volatile zeus_atomic_t zeus_quit;
-volatile zeus_atomic_t zeus_refork;
-volatile zeus_atomic_t zeus_segv;
+volatile zeus_atomic_t zeus_quit = 0;
+volatile zeus_atomic_t zeus_segv = 0;
+volatile zeus_atomic_t zeus_refork = 0;
 
 int main(int argc,char *argv[]){
     
@@ -243,14 +243,20 @@ zeus_status_t zeus_prepare_spawn(zeus_process_t *p){
 
     zeus_size_t idx = 0;
 
-    p->channel = (int **)zeus_memory_alloc(p->pool,sizeof(int *) * (p->worker + 1));
+    /*
+     * Here is about unix domain socket file descriptor
+     * Worker processes don't communicate with each other
+     * Worker processes only communicate with gateway
+     */
+
+    p->channel = (int **)zeus_memory_alloc(p->pool,sizeof(int *) * p->worker);
 
     if(p->channel == NULL){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"create channel error");
         return ZEUS_ERROR;
     }
 
-    for(idx = 0 ; idx < (p->worker + 1) ; ++ idx){
+    for(idx = 0 ; idx < p->worker ; ++ idx){
 		
         p->channel[idx] = (int *)zeus_memory_alloc(p->pool,sizeof(int) * 2);
         if(p->channel[idx] == NULL){
@@ -260,14 +266,14 @@ zeus_status_t zeus_prepare_spawn(zeus_process_t *p){
 
     }
 
-    for(idx = 0 ; idx < (p->worker + 1) ; ++ idx){
+    for(idx = 0 ; idx < p->worker ; ++ idx){
         if(socketpair(AF_UNIX,SOCK_STREAM,0,p->channel[idx]) == -1){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"create channel error when call socketpair : %s",strerror(errno));
             return ZEUS_ERROR;
         }
     }
 
-    for(idx = 0 ; idx < (p->worker + 1) ; ++ idx){
+    for(idx = 0 ; idx < p->worker ; ++ idx){
 
         if(fcntl(p->channel[idx][0],F_SETFL,O_NONBLOCK) == -1){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"set nonblocking channel %d:0 error : %s",strerror(errno));
@@ -354,21 +360,9 @@ zeus_status_t zeus_master_prepare_loop(zeus_process_t *p){
 
     p->pidx = ZEUS_MASTER_PROCESS_INDEX;
 
-    /*
-    zeus_size_t i;
-
-    for(i = 0 ; i < p->worker + 1 ; ++ i){
-        if(close(p->channel[i][0]) == -1){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"close read channel errro : %s",strerror(errno));
-        }
-        if(close(p->channel[i][1]) == -1){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"close write channel error : %s",strerror(errno));
-        }
-    }
-    */
-   
-
     zeus_master_event_loop(p);
+    
+    return ZEUS_OK;
 
 }
 
@@ -395,22 +389,28 @@ zeus_status_t zeus_prepare_loop(zeus_process_t *p,zeus_idx_t idx){
                       (p->pidx)?"worker":"gateway",strerror(errno));
     }
 
-	
-    if(!zeus_refork){
-        for(i = 0 ; i < p->worker + 1 ; ++ i){
-            if(i == p->pidx){
-                if(close(p->channel[i][1]) == -1){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"close own write channel error : %s",strerror(errno));
+    for(i = 0 ; i < p->worker ; ++ i){
+        if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
+            if(close(p->channel[i][1]) == -1){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process close channel error : %s",strerror(errno));
+                return ZEUS_ERROR;
+            }
+        }else{
+            if(p->pidx - 1 == i){
+                if(close(p->channel[i][0]) == -1){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process close channel error : %s",strerror(errno));
+                    return ZEUS_ERROR;
                 }
             }else{
-                if(close(p->channel[i][0]) == -1){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"close other read channel error : %s",strerror(errno));
+                if(close(p->channel[i][0]) == -1 || close(p->channel[i][1]) == -1){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process close channel error : %s",strerror(errno));
+                    return ZEUS_ERROR;
                 }
             }
         }
     }
 
-    if(p->pidx == 0){
+    if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
         if(zeus_gateway_prepare_listen(p) == ZEUS_ERROR){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process prepare listen error");
         }
@@ -421,6 +421,8 @@ zeus_status_t zeus_prepare_loop(zeus_process_t *p,zeus_idx_t idx){
     }
 
     zeus_event_loop(p);
+
+    return ZEUS_OK;
 
 }
 
@@ -481,7 +483,6 @@ zeus_status_t zeus_respawn(zeus_process_t *p){
                         zeus_write_log(p->log,ZEUS_ERROR,"%s process prepare loop error",\
                                       (p->pidx)?"worker":"gateway");
                     }
-                    zeus_refork = 1;
                     break;
                 default:
                     p->child[idx] = pid;

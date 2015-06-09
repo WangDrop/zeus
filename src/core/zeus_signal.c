@@ -30,9 +30,9 @@ void zeus_master_signal_handler(int signo){
                     if(process->child[idx] == pid){
                         process->child[idx] = -1;
                     }
-                    if(!zeus_refork && !zeus_quit){
-                        zeus_refork = 1;
-                    }
+                }
+                if(!zeus_refork && !zeus_quit){
+                    zeus_refork = 1;
                 }
             }
             

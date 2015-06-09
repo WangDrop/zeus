@@ -47,13 +47,13 @@ zeus_status_t zeus_master_event_loop(zeus_process_t *p){
         sigsuspend(&lset);
 		
         if(zeus_refork == 1){
-	        
+            
+            zeus_refork = 0;
+
             zeus_write_log(p->log,ZEUS_LOG_NOTICE,"restart the gateway/child process");
 
             zeus_respawn(p);
             
-            zeus_refork = 0;
-
         }
 
         if(zeus_quit == 1){
@@ -295,65 +295,67 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
 
         zeus_insert_list(p->connection,node);
 
-    }
-
-    for(idx = 0 ; idx < p->worker + 1 ; idx ++){
-
-        if((node = zeus_create_connection_list_node(p)) == NULL){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create unix socket connection error",\
-                                                 (p->pidx)?"worker":"gateway");
-            return ZEUS_ERROR;
-        }
-
-        conn = (zeus_connection_t *)(node->d);
-
-        if(p->pidx == idx){
-
+        for(idx = 0 ; idx < p->worker ; ++ idx){
+            if((node = zeus_create_connection_list_node(p)) == NULL){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create unix socket connection list node error");
+                return ZEUS_ERROR;
+            }
+            conn = (zeus_connection_t *)(node->d);
             conn->fd = p->channel[idx][0];
             if(!conn->rd){
                 if((conn->rd = zeus_create_event(p)) == NULL){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create read channel connection error",\
-                                                         (p->pidx)?"worker":"gateway");
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create channel connection event error");
                     return ZEUS_ERROR;
                 }
                 conn->rd->connection = conn;
             }
-
-            if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
-                conn->rd->handler = zeus_event_io_read;
-            }else{
-                conn->rd->handler = zeus_event_io_recv_socket;
-            }
-
+            conn->rd->handler = zeus_event_io_read;
             conn->rdstatus = ZEUS_EVENT_ON;
-
-        }else{
-            conn->fd = p->channel[idx][1];
             if(!conn->wr){
                 if((conn->wr = zeus_create_event(p)) == NULL){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create write channel connection error",\
-                                                         (p->pidx)?"worker":"gateway");
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create channel connection event error");
                     return ZEUS_ERROR;
                 }
+                conn->wr->connection = conn;
             }
-
-            conn->wr->connection = conn;
-            if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
-                conn->wr->handler = zeus_event_io_send_socket;
-            }else{
-                conn->wr->handler = zeus_event_io_write;
-            }
-
+            conn->wr->handler = zeus_event_io_send_socket;
             conn->wrstatus = ZEUS_EVENT_OFF;
+            conn->quiting = 0;
+            zeus_insert_list(p->connection,node);
         }
 
+    }else{
+
+        if((node = zeus_create_connection_list_node(p)) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process create connection list node error");
+            return ZEUS_ERROR;
+        }
+        conn = (zeus_connection_t *)(node->d);
+        conn->fd = p->channel[p->pidx - 1][1];
+        if(!conn->rd){
+            if((conn->rd = zeus_create_event(p)) == NULL){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process create connection read event error");
+                return ZEUS_ERROR;
+            }
+            conn->rd->connection = conn;
+        }
+        conn->rd->handler = zeus_event_io_recv_socket;
+        conn->rdstatus = ZEUS_EVENT_ON;
+        if(!conn->wr){
+            if((conn->wr = zeus_create_event(p)) == NULL){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process create connection write event error");
+                return ZEUS_ERROR;
+            }
+            conn->wr->connection = conn;
+        }
+        conn->wr->handler = zeus_event_io_write;
+        conn->wrstatus = ZEUS_EVENT_OFF;
         conn->quiting = 0;
-
         zeus_insert_list(p->connection,node);
-
     }
-    
+
     return ZEUS_OK;
+
 }
 
 zeus_status_t zeus_event_create_epfd(zeus_process_t *p){
