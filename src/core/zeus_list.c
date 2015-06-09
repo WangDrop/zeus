@@ -60,3 +60,25 @@ void zeus_insert_list(zeus_list_t *l,zeus_list_data_t *ld){
     return ;
 
 }
+
+void zeus_delete_list(zeus_list_t *l,zeus_list_data_t *ld){
+
+    if(ld == l->tail){
+        l->tail = ld->prev;
+    }
+    if(ld == l->head){
+        l->head = ld->next;
+    }
+
+    if(ld->prev){
+        ld->prev->next = ld->next;
+    }
+    if(ld->next){
+        ld->next->prev = ld->prev;
+    }
+
+    ld->prev = ld->next = NULL;
+
+    return ;
+
+}

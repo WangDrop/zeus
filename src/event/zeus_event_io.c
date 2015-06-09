@@ -238,7 +238,7 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
         return ZEUS_ERROR;
     }
     
-    //p->worker_load[p->pidx] += 1;
+    p->worker_load[p->pidx] += 1;
 
     if(!tconn->wr){
         if((tconn->wr = zeus_create_event(p)) == NULL){
@@ -271,6 +271,8 @@ zeus_status_t zeus_event_io_send_socket(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_event_io_trans_socket_t trans_socket;
     struct msghdr msg;
+    zeus_idx_t idx = 0;
+    zeus_list_data_t *q = p->connection->head;
 
     zeus_list_data_t *node;
     node = ev->buffer->head;
@@ -287,15 +289,7 @@ zeus_status_t zeus_event_io_send_socket(zeus_process_t *p,zeus_event_t *ev){
 
     ev->buflen -= 1;
 
-    if(node->next == NULL){
-        ev->buffer->head = ev->buffer->tail = NULL;
-    }else{
-        node->next->prev = NULL;
-        ev->buffer->head = node->next;
-    }
-    
-    node->next = node->prev = NULL;
-
+    zeus_delete_list(ev->buffer,node);
 
     msg.msg_name = NULL;
     msg.msg_namelen = 0;
@@ -316,9 +310,26 @@ zeus_status_t zeus_event_io_send_socket(zeus_process_t *p,zeus_event_t *ev){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"send file descriptor error : %s",strerror(errno));
         return ZEUS_ERROR;
     }
-/*
-    zeus_helper_close_connection(p,(zeus_connection_t *)node->d);
-*/
+    
+    while(idx < p->worker && q){
+        if(q == ev->connection->node){
+            break;
+        }else{
+            ++ idx;
+            q = q->next;
+        }
+    }
+
+    if(q != ev->connection->node){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"can not find the channel error");
+        return ZEUS_ERROR;
+    }
+
+    if(zeus_helper_move_to_closing_connection_list(p,(zeus_connection_t *)node->d,idx) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"move to closing connection list error");
+        return ZEUS_ERROR;
+    }
+
     if(ev->buflen == 0){
         ev->connection->wrstatus = ZEUS_EVENT_OFF;
         zeus_helper_mod_event(p,ev->connection);
@@ -390,6 +401,11 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_insert_list(p->connection,node);
 
+    if(zeus_proto_trans_socket_ack(p,ev->connection->wr) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate send back trans socket ack packet error");
+        return ZEUS_ERROR;
+    }
+    
     return ZEUS_OK;
 
 }

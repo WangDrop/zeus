@@ -273,6 +273,18 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
 
     if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
 
+        if((p->closing_connection = (zeus_list_t **)zeus_memory_alloc(p->pool,p->worker * sizeof(zeus_list_t *))) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process alloc closing connection list array error");
+            return ZEUS_ERROR;
+        }
+
+        for(idx = 0 ; idx < p->worker ; ++ idx){
+            if((p->closing_connection[idx] = zeus_create_list(p->pool,p->log)) == NULL){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process alloc closing connection list #%d error",idx);
+                return ZEUS_ERROR;
+            }
+        }
+
         if((node = zeus_create_connection_list_node(p)) == NULL){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create listen connection error");
             return ZEUS_ERROR;

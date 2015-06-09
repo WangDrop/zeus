@@ -14,6 +14,7 @@
 #define ZEUS_ACK_OK_MESSAGE_SIZE (sizeof(ZEUS_ACK_OK_MESSAGE))
 
 zeus_status_t zeus_proto_helper_generate_ack_ok_packet(zeus_process_t *,zeus_event_t *);
+zeus_status_t zeus_proto_helper_generate_trans_socket_ack_packet(zeus_process_t *,zeus_event_t *);
 void zeus_proto_helper_get_opcode_and_pktlen(zeus_event_t *,zeus_uchar_t *,zeus_uint_t *);
 void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *,zeus_event_t *,zeus_char_t *,zeus_size_t);
 zeus_status_t zeus_proto_helper_check_hash(zeus_string_t *,zeus_char_t *,zeus_size_t);

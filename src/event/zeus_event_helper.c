@@ -167,18 +167,9 @@ zeus_status_t zeus_helper_close_connection(zeus_process_t *p,zeus_connection_t* 
     
     // TODO 
     // Check manage connection list
-   
-    if(p->connection->tail == node){
-        p->connection->tail = node->prev;
-    }
-    if(node->prev){
-        node->prev->next = node->next;
-    }
-    if(node->next){
-        node->next->prev = node->prev;
-    }
-    node->prev = node->next = NULL;
     
+    zeus_delete_list(p->connection,node);
+   
     
     if(zeus_recycle_connection_list_node_to_pool(p,conn->node) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process close connection error when recycle connection list node",\
@@ -231,16 +222,15 @@ zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn
         }
     }
     
-    if(node == p->connection->tail){
-        p->connection->tail = node->prev;
+    zeus_delete_list(p->connection,node);
+
+    conn->rdstatus = ZEUS_EVENT_OFF;
+    conn->wrstatus = ZEUS_EVENT_OFF;
+
+    if(zeus_helper_mod_event(p,conn) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"reset trans socket event error");
+        return ZEUS_ERROR;
     }
-    if(node->prev){
-        node->prev->next = node->next;
-    }
-    if(node->next){
-        node->next->prev = node->prev;
-    }
-    node->prev = node->next = NULL;
     
     c = (zeus_connection_t *)r->d;
     c->wrstatus = ZEUS_EVENT_ON;
@@ -258,5 +248,12 @@ zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn
 connection_error:
     zeus_write_log(p->log,ZEUS_LOG_ERROR,"something wrong with connection list");
     return ZEUS_ERROR;
+
+}
+
+zeus_status_t zeus_helper_move_to_closing_connection_list(zeus_process_t *p,zeus_connection_t *conn,zeus_idx_t idx){
+
+    zeus_list_data_t *node = conn->node;
+    zeus_insert_list(p->closing_connection[idx],node);
 
 }

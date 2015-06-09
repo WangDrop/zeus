@@ -36,4 +36,6 @@ zeus_list_data_t *zeus_create_list_data_node(zeus_memory_pool_t *pool,zeus_log_t
 
 void zeus_insert_list(zeus_list_t *,zeus_list_data_t *);
 
+void zeus_delete_list(zeus_list_t *,zeus_list_data_t *);
+
 #endif
