@@ -45,7 +45,6 @@ struct zeus_process_s{
     zeus_int_t **channel;
     volatile zeus_pid_t *child;
     zeus_uint_t *worker_load;
-    zeus_list_t **closing_connection;
 
 
     zeus_list_t *connection;

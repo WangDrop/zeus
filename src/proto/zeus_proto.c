@@ -105,8 +105,6 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
                 p->worker_load[idx] -= 1;
 
-                zeus_helper_unlink_connection_at_closing_list(p,idx);
-
                 break;
 
             default:

@@ -265,8 +265,6 @@ zeus_status_t zeus_event_io_send_socket(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_event_io_trans_socket_t trans_socket;
     struct msghdr msg;
-    zeus_idx_t idx = 0;
-    zeus_list_data_t *q = p->connection->head;
 
     zeus_list_data_t *node;
     node = ev->buffer->head;
@@ -304,26 +302,14 @@ zeus_status_t zeus_event_io_send_socket(zeus_process_t *p,zeus_event_t *ev){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"send file descriptor error : %s",strerror(errno));
         return ZEUS_ERROR;
     }
+
+    if(close(((zeus_connection_t *)node->d)->fd) == -1){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"close trans socket file descriptor in gateway process error");
+        return ZEUS_ERROR;
+    }
+
+    zeus_recycle_connection_list_node_to_pool(p,node);
     
-    while(idx < p->worker && q){
-        if(q == ev->connection->node){
-            break;
-        }else{
-            ++ idx;
-            q = q->next;
-        }
-    }
-
-    if(q != ev->connection->node){
-        zeus_write_log(p->log,ZEUS_LOG_ERROR,"can not find the channel error");
-        return ZEUS_ERROR;
-    }
-
-    if(zeus_helper_move_to_closing_connection_list(p,(zeus_connection_t *)node->d,idx) == ZEUS_ERROR){
-        zeus_write_log(p->log,ZEUS_LOG_ERROR,"move to closing connection list error");
-        return ZEUS_ERROR;
-    }
-
     if(ev->buflen == 0){
         ev->connection->wrstatus = ZEUS_EVENT_OFF;
         zeus_helper_mod_event(p,ev->connection);
