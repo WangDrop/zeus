@@ -202,6 +202,8 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process alloc address string error");
             return ZEUS_ERROR;
         }
+
+        *(tconn->peerlen) = sizeof(zeus_sockaddr_in_t);
     }
 
     if((tconn->fd = accept(conn->fd,(zeus_sockaddr_t *)tconn->peer,tconn->peerlen)) == -1){
