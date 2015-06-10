@@ -71,7 +71,6 @@ void zeus_proto_helper_get_opcode_and_pktlen(zeus_event_t *ev,zeus_uchar_t *opco
 
     if(leftsize > ZEUS_PROTO_DATA_LEN_SIZE){
         *len = *(zeus_uint_t *)c;
-        *len = (zeus_uint_t)ntohl(*len);
     }else{
         while(sz > 0){
             leftsize = zeus_addr_delta(buf->last,c);
@@ -88,6 +87,7 @@ void zeus_proto_helper_get_opcode_and_pktlen(zeus_event_t *ev,zeus_uchar_t *opco
             }
         }
     }
+    *len = (zeus_uint_t)ntohl(*len);
     
     return ;
 
@@ -167,7 +167,7 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *p,zeus_event_t *
             zeus_memcpy((void *)r,buf->current,leftsz);
             r = (zeus_char_t *)zeus_addr_add(r,leftsz);
             sz -= leftsz;
-            ev->buflen -= sz;
+            ev->buflen -= leftsz;
             zeus_delete_list(ev->buffer,q);
             zeus_recycle_buffer_list_node_to_pool(p,q);
 

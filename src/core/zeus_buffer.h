@@ -11,7 +11,7 @@
 
 #include "zeus_common.h"
 
-#define ZEUS_BUFFER_MAX_SIZE 8192
+#define ZEUS_BUFFER_MAX_SIZE 1
 
 struct zeus_buffer_s{
     

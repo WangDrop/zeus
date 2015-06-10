@@ -112,6 +112,11 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                 goto solve_error;
 
         }
+
+    }else{
+
+        return ZEUS_ERROR;
+
     }
 
     return ZEUS_OK;

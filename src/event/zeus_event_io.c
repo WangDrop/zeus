@@ -51,10 +51,12 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
         
         if((current_read_sz = read(ev->connection->fd,current_buf->last,current_left_sz)) == -1){
             terrno = errno;
-            if(terrno == EAGAIN || terrno == EWOULDBLOCK || terrno == EINTR){
-                return ZEUS_OK;
+            if(terrno == EAGAIN || terrno == EWOULDBLOCK){
+                break;
+            }else if(terrno == EINTR){
+                continue;
             }else{
-                zeus_write_log(p->log,ZEUS_LOG_ERROR,"read from the connection error");
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"read from the connection error : %s",strerror(terrno));
                 return ZEUS_ERROR;
             }
         }else if(current_read_sz == 0){
@@ -88,9 +90,7 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
     
     while(ev->buflen > ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE){
         if(zeus_proto_solve_read_buf(p,ev) == ZEUS_ERROR){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process solve read buffer and do operation error", \
-                                                 p->pidx?"worker":"gateway");
-            return ZEUS_ERROR;
+            break;
         }
     }
 
@@ -204,16 +204,6 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
         }
     }
 
-    if(inet_ntop(AF_INET,(const void *)&tconn->peer->sin_addr,tconn->addr_string->data,ZEUS_IPV4_ADDRESS_STRING_SIZE) == NULL){
-        zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process convert the connection address error : %s",strerror(errno));
-        return ZEUS_ERROR;
-    }
-    
-    /* Log the client information */
-    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"client %s:%hu connect to the server",\
-                                          tconn->addr_string->data,ntohs(tconn->peer->sin_port));
-    /* Log the client information */
-
     if((tconn->fd = accept(conn->fd,(zeus_sockaddr_t *)tconn->peer,tconn->peerlen)) == -1){
         terror = errno;
         zeus_recycle_connection_list_node_to_pool(p,tnode);
@@ -224,6 +214,16 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
             return ZEUS_ERROR;
         }
     }
+    
+    if(inet_ntop(AF_INET,(const void *)&tconn->peer->sin_addr,tconn->addr_string->data,ZEUS_IPV4_ADDRESS_STRING_SIZE) == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process convert the connection address error : %s",strerror(errno));
+        return ZEUS_ERROR;
+    }
+    
+    /* Log the client information */
+    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"client %s:%hu connect to the server",\
+                                          tconn->addr_string->data,ntohs(tconn->peer->sin_port));
+    /* Log the client information */
 
 
     if(fcntl(tconn->fd,F_SETFL,O_NONBLOCK) == -1){
