@@ -98,7 +98,7 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                     zeus_write_log(p->log,ZEUS_LOG_ERROR,"get channel index error");
                     return ZEUS_ERROR;
                 }
-
+                
                 idx = ntohl(idx);
 
                 zeus_write_log(p->log,ZEUS_LOG_NOTICE,"recv socket ack from channel %d",idx);

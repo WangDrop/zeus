@@ -65,7 +65,7 @@ zeus_status_t zeus_proto_buffer_read_uint(zeus_process_t *p,zeus_event_t *ev,zeu
                 zeus_recycle_buffer_list_node_to_pool(p,tbuf);
             }
         }else{
-            zeus_memcpy((zeus_char_t *)zeus_addr_add((zeus_char_t *)i,sizeof(zeus_uint_t) - leftsz),b->current,leftsz);
+            zeus_memcpy((zeus_char_t *)zeus_addr_add((zeus_char_t *)i,sizeof(zeus_uint_t) - leftrd),b->current,leftsz);
             leftrd -= leftsz;
             b->current = zeus_addr_add(b->current,leftsz);
             ev->buflen -= leftsz;
