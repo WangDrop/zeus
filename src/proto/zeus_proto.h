@@ -16,6 +16,8 @@ zeus_status_t zeus_proto_ack_connection(zeus_process_t *,zeus_event_t *);
 
 zeus_status_t zeus_proto_trans_socket_ack(zeus_process_t *,zeus_event_t *);
 
+zeus_status_t zeus_proto_send_reset_load_balance_packet(zeus_process_t *,zeus_event_t *);
+
 zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *,zeus_event_t *);
 
 zeus_status_t zeus_proto_timeout_handler(zeus_process_t *,zeus_event_t *);

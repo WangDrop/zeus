@@ -348,8 +348,9 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
             }
             conn->wr->connection = conn;
         }
+        zeus_proto_send_reset_load_balance_packet(p,conn->wr);
         conn->wr->handler = zeus_event_io_write;
-        conn->wrstatus = ZEUS_EVENT_OFF;
+        conn->wrstatus = ZEUS_EVENT_ON;
         conn->quiting = 0;
         zeus_insert_list(p->connection,node);
     }

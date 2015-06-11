@@ -19,6 +19,12 @@ zeus_status_t zeus_proto_trans_socket_ack(zeus_process_t *p,zeus_event_t *ev){
 
 }
 
+zeus_status_t zeus_proto_send_reset_load_balance_packet(zeus_process_t *p,zeus_event_t *ev){
+    
+    return zeus_proto_helper_generate_reset_load_balance_packet(p,ev);
+
+}
+
 zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_uchar_t opcode;
@@ -90,12 +96,12 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                 }
 
                 if(len != ZEUS_PROTO_IDX_SIZE){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"wrong channel index");
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"wrong channel index (ZEUS_PROTO_TRANS_SOCKET_ACK_INS)");
                     return ZEUS_ERROR;
                 }
 
                 if(zeus_proto_helper_get_channel_index(p,ev,&idx) == ZEUS_ERROR){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"get channel index error");
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"get channel index error (ZEUS_PROTO_TRANS_SOCKET_ACK_INS)");
                     return ZEUS_ERROR;
                 }
                 
@@ -104,6 +110,26 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                 zeus_write_log(p->log,ZEUS_LOG_NOTICE,"recv socket ack from channel %d",idx);
 
                 p->worker_load[idx] -= 1;
+
+                break;
+
+            case ZEUS_PROTO_RESET_LOAD_BALANCE_INS:
+
+                if(len != ZEUS_PROTO_IDX_SIZE){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"wrong channel index (ZEUS_PROTO_RESET_LOAD_BALANCE_INS)");
+                    return ZEUS_ERROR;
+                }
+
+                if(zeus_proto_helper_get_channel_index(p,ev,&idx) == ZEUS_ERROR){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"get channel index error (ZEUS_PROTO_RESET_LOAD_BALANCE_INS)");
+                    return ZEUS_ERROR;
+                }
+
+                idx = ntohl(idx);
+
+                zeus_write_log(p->log,ZEUS_LOG_NOTICE,"recv reset load balance from channel %d",idx);
+
+                p->worker_load[idx] = 0;
 
                 break;
 

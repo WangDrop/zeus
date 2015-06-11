@@ -20,5 +20,6 @@ void zeus_proto_helper_cp_data_from_buf_to_carr(zeus_process_t *,zeus_event_t *,
 void zeus_proto_helper_move_forward_opcode_and_pktlen(zeus_process_t *,zeus_event_t *);
 zeus_status_t zeus_proto_helper_check_hash(zeus_string_t *,zeus_char_t *,zeus_size_t);
 zeus_status_t zeus_proto_helper_get_channel_index(zeus_process_t *,zeus_event_t *,zeus_idx_t *);
+zeus_status_t zeus_proto_helper_generate_reset_load_balance_packet(zeus_process_t *,zeus_event_t *);
 
 #endif
