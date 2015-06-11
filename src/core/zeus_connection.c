@@ -33,6 +33,12 @@ zeus_list_data_t *zeus_create_connection_list_node(zeus_process_t *process){
     alloc_node->next = NULL;
     alloc_node->d = (void *)alloc_connection;
     alloc_connection->node = alloc_node;
+    if((alloc_connection->privilege = (zeus_uint_t *)zeus_memory_alloc(process->pool,ZEUS_PROTO_INS_MAX)) == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create connection privilege part error");
+        return NULL;
+    }
+
+    zeus_memset(alloc_connection->privilege,0,ZEUS_PROTO_INS_MAX);
 
     return alloc_node;
 
@@ -50,8 +56,16 @@ zeus_connection_t *zeus_create_connection_node(zeus_process_t *process){
         return NULL;
     }
 
-    alloc_connection->rd = NULL;
-    alloc_connection->wr = NULL;
+    if((alloc_connection->rd = zeus_create_event(process,alloc_connection)) == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create connection read event error");
+        return NULL;
+    }
+
+    if((alloc_connection->wr = zeus_create_event(process,alloc_connection)) == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create connection write event error");
+        return NULL;
+    
+    }
 
     alloc_connection->rdstatus = ZEUS_EVENT_OFF;
     alloc_connection->wrstatus = ZEUS_EVENT_OFF;
@@ -118,12 +132,14 @@ zeus_status_t zeus_recycle_connection_list_node_to_pool(zeus_process_t *process,
             }
         }
         conn->rd->buflen = 0;
-
+        
+        // conn->rd does not change
         // conn->rd->buffer does not change
         // conn->rd->connection does not change
     }
 
     if(conn->wr){
+
         if(conn->wr->timeout == ZEUS_EVENT_ON){
             conn->wr->timeout = ZEUS_EVENT_OFF;
             conn->wr->timeout_handler = NULL;
@@ -146,10 +162,13 @@ zeus_status_t zeus_recycle_connection_list_node_to_pool(zeus_process_t *process,
             }
         }
         conn->wr->buflen = 0;
-
+        
+        // conn->wr does not change
         // conn->wr->buffer does not change
         // conn->wr->connection does not change
     }
+
+    zeus_memset(conn->privilege,0,ZEUS_PROTO_INS_MAX);
     
     z->prev = NULL;
     z->next = process->connection_pool;

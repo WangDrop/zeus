@@ -35,7 +35,8 @@ struct zeus_connection_s{
     zeus_uint_t quiting;
 
     zeus_list_data_t *node;
-
+    
+    zeus_uint_t *privilege;
 
 };
 

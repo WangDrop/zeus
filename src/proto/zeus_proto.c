@@ -41,6 +41,10 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_proto_helper_get_opcode_and_pktlen(ev,&opcode,&len);
 
+    if(zeus_proto_helper_check_opcode_privilege_of_connection(ev->connection,opcode) == ZEUS_ERROR){
+        goto solve_error;
+    }
+
     if(ev->buflen - ZEUS_PROTO_OPCODE_SIZE - ZEUS_PROTO_DATA_LEN_SIZE >= len){
 
         switch(opcode){
@@ -91,9 +95,6 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
             case ZEUS_PROTO_TRANS_SOCKET_ACK_INS:
 
-                if(ev->connection->peer){
-                    goto solve_error;
-                }
 
                 if(len != ZEUS_PROTO_IDX_SIZE){
                     zeus_write_log(p->log,ZEUS_LOG_ERROR,"wrong channel index (ZEUS_PROTO_TRANS_SOCKET_ACK_INS)");

@@ -209,3 +209,37 @@ zeus_status_t zeus_proto_helper_get_channel_index(zeus_process_t *p,zeus_event_t
 
 
 }
+
+zeus_status_t zeus_proto_helper_set_connection_privilege(zeus_connection_t *conn,zeus_uint_t ins){
+
+    zeus_uint_t privilege_idx = ins / sizeof(zeus_uint_t);
+    zeus_uint_t privilege_loc = ins % sizeof(zeus_uint_t);
+    
+    if(ins >= ZEUS_PROTO_INS_MAX){
+        return ZEUS_ERROR;
+    } 
+
+    conn->privilege[privilege_idx] |= (1 << privilege_loc);
+
+    return ZEUS_OK;
+
+}
+
+zeus_status_t zeus_proto_helper_check_opcode_privilege_of_connection(zeus_connection_t *conn,zeus_uchar_t opcode){
+    
+    zeus_uint_t ins = (zeus_uint_t)opcode;
+    zeus_uint_t privilege_idx = ins / sizeof(zeus_uint_t);
+    zeus_uint_t privilege_loc = ins % sizeof(zeus_uint_t);
+
+    if(ins >= ZEUS_PROTO_INS_MAX){
+        return ZEUS_ERROR;
+    }
+
+    if(conn->privilege[privilege_idx] & (1 << privilege_loc)){
+        return ZEUS_OK;
+    }else{
+        return ZEUS_ERROR;
+    }
+
+
+}

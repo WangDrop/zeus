@@ -36,7 +36,7 @@ struct zeus_event_s{
 
 };
 
-zeus_event_t *zeus_create_event(zeus_process_t *);
+zeus_event_t *zeus_create_event(zeus_process_t *,zeus_connection_t *);
 zeus_status_t zeus_master_event_loop(zeus_process_t *);
 zeus_status_t zeus_event_loop(zeus_process_t *);
 

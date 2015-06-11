@@ -5,7 +5,7 @@
 
 #include "zeus_event.h"
 
-zeus_event_t *zeus_create_event(zeus_process_t *p){
+zeus_event_t *zeus_create_event(zeus_process_t *p,zeus_connection_t *conn){
     
     zeus_event_t *alloc_event;
     
@@ -16,7 +16,7 @@ zeus_event_t *zeus_create_event(zeus_process_t *p){
         return NULL;
     }
 
-    alloc_event->connection = NULL;
+    alloc_event->connection = conn;
     
     alloc_event->buffer = zeus_create_list(p->pool,p->log);
     if(alloc_event->buffer == NULL){
@@ -279,15 +279,6 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         }
 
         conn = (zeus_connection_t *)(node->d);
-
-        if(!conn->rd){
-            if((conn->rd = zeus_create_event(p)) == NULL){
-                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create listen connection event error");
-                return ZEUS_ERROR;
-            }
-            conn->rd->connection = conn;
-        }
-        
         conn->fd = p->listenfd;
         conn->rd->handler = zeus_event_io_accept;
         conn->rdstatus = ZEUS_EVENT_ON;
@@ -300,24 +291,22 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
                 zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create unix socket connection list node error");
                 return ZEUS_ERROR;
             }
+
             conn = (zeus_connection_t *)(node->d);
             conn->fd = p->channel[idx][0];
-            if(!conn->rd){
-                if((conn->rd = zeus_create_event(p)) == NULL){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create channel connection event error");
-                    return ZEUS_ERROR;
-                }
-                conn->rd->connection = conn;
-            }
             conn->rd->handler = zeus_event_io_read;
             conn->rdstatus = ZEUS_EVENT_ON;
-            if(!conn->wr){
-                if((conn->wr = zeus_create_event(p)) == NULL){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create channel connection event error");
-                    return ZEUS_ERROR;
-                }
-                conn->wr->connection = conn;
+            
+            if(zeus_proto_helper_set_connection_privilege(conn,ZEUS_PROTO_TRANS_SOCKET_ACK_INS) == ZEUS_ERROR){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway open recv trans socket ack privilege error");
+                return ZEUS_ERROR;
             }
+
+            if(zeus_proto_helper_set_connection_privilege(conn,ZEUS_PROTO_RESET_LOAD_BALANCE_INS) == ZEUS_ERROR){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway open recv reset load balance privilege error");
+                return ZEUS_ERROR;
+            }
+
             conn->wr->handler = zeus_event_io_send_socket;
             conn->wrstatus = ZEUS_EVENT_OFF;
             conn->quiting = 0;
@@ -332,27 +321,15 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         }
         conn = (zeus_connection_t *)(node->d);
         conn->fd = p->channel[p->pidx - 1][1];
-        if(!conn->rd){
-            if((conn->rd = zeus_create_event(p)) == NULL){
-                zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process create connection read event error");
-                return ZEUS_ERROR;
-            }
-            conn->rd->connection = conn;
-        }
         conn->rd->handler = zeus_event_io_recv_socket;
         conn->rdstatus = ZEUS_EVENT_ON;
-        if(!conn->wr){
-            if((conn->wr = zeus_create_event(p)) == NULL){
-                zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process create connection write event error");
-                return ZEUS_ERROR;
-            }
-            conn->wr->connection = conn;
-        }
+    
         zeus_proto_send_reset_load_balance_packet(p,conn->wr);
         conn->wr->handler = zeus_event_io_write;
         conn->wrstatus = ZEUS_EVENT_ON;
         conn->quiting = 0;
         zeus_insert_list(p->connection,node);
+
     }
 
     return ZEUS_OK;

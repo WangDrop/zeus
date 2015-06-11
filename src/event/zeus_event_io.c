@@ -146,18 +146,12 @@ zeus_status_t zeus_event_io_write(zeus_process_t *p,zeus_event_t *ev){
 
             tconn->wrstatus = ZEUS_EVENT_OFF;
             tconn->rdstatus = ZEUS_EVENT_ON;
-            if(!tconn->rd){
-
-                if((tconn->rd = zeus_create_event(p)) == NULL){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"create read event node error");
-                    return ZEUS_ERROR;
-                }
-                tconn->rd->connection = tconn;
-            }
             tconn->rd->handler = zeus_event_io_read;
 
         }else{
+
             tconn->wrstatus = ZEUS_EVENT_OFF;
+
         }
         if(zeus_helper_mod_event(p,tconn) == ZEUS_ERROR){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"modify event in zeus_event_io_write error");
@@ -235,14 +229,10 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
     }
     
     p->worker_load[p->pidx] += 1;
-
-    if(!tconn->wr){
-        if((tconn->wr = zeus_create_event(p)) == NULL){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process alloc write event error");
-            zeus_recycle_connection_list_node_to_pool(p,tnode);
-            return ZEUS_ERROR;
-        }
-        tconn->wr->connection = tconn;
+    
+    if(zeus_proto_helper_set_connection_privilege(tconn,ZEUS_PROTO_CLIENT_CHECKOUT_INS) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process set new accept connection client check privilege error");
+        return ZEUS_ERROR;
     }
     
     if(zeus_proto_ack_connection(p,tconn->wr) == ZEUS_ERROR){
@@ -365,18 +355,19 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
         return ZEUS_ERROR;
     }
 
-
-    if(!conn->rd){
-        conn->rd = zeus_create_event(p);
-        if(!conn->rd){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"create new connection read event error");
-            return ZEUS_ERROR;
-        }
-    }
-    
     conn->rdstatus = ZEUS_EVENT_ON;
     conn->rd->handler = zeus_event_io_read;
     conn->rd->connection = conn;
+
+    if(zeus_proto_helper_set_connection_privilege(conn,ZEUS_PROTO_DATA_INS) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process set new connection recv data privilege error");
+        return ZEUS_ERROR;
+    }
+
+    if(zeus_proto_helper_set_connection_privilege(conn,ZEUS_PROTO_CLIENT_CHECKOUT_INS) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process set new connection check client privilege error");
+        return ZEUS_ERROR;
+    }
 
     if(zeus_helper_add_event(p,conn) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"add new connection read event error");
