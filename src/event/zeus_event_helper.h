@@ -17,5 +17,6 @@ zeus_status_t zeus_helper_mod_event(zeus_process_t *,zeus_connection_t *);
 zeus_status_t zeus_helper_close_connection(zeus_process_t *,zeus_connection_t *);
 zeus_idx_t zeus_helper_find_load_lowest(zeus_process_t *);
 zeus_status_t zeus_helper_trans_socket(zeus_process_t *,zeus_connection_t *,zeus_idx_t);
+zeus_status_t zeus_helper_timeout_handler(zeus_process_t *,zeus_event_t *);
 
 #endif

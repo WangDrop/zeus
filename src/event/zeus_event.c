@@ -152,6 +152,8 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
 
 
         if((nev = epoll_wait(p->epfd,loopev,ZEUS_EVENT_CNT,-1)) >= 0){
+
+            zeus_update_time();
             
             for(tidx = 0 ; tidx < nev ; ++ tidx){
                 
@@ -183,18 +185,12 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
         zeus_update_time();
 
         while((tnode = zeus_event_timer_rbtree_find_next(p->timer,p->timer->root)) != p->timer->nil){
+            //zeus_write_log(p->log,ZEUS_LOG_ERROR,"%u %u %u %u",p->cache_time->tv_sec,p->cache_time->tv_usec,tnode->t.tv_sec,tnode->t.tv_usec);
             if(zeus_event_timer_rbtree_key_compare(p->cache_time,&tnode->t) == ZEUS_EVENT_TIMER_GT){
-                if(zeus_event_timer_rbtree_delete(p->timer,tnode) != ZEUS_OK){
-                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process deletes timer tree node error",\
-                                  (p->pidx)?"worker":"gateway");
-                    continue;
-                }else{
-                    tnode->ev->timeout = ZEUS_EVENT_OFF;
-                    tnode->ev->timeout_rbnode = NULL;
                     tnode->ev->timeout_handler(p,tnode->ev);
-                    zeus_recycle_event_timer_rbnode_to_pool(p->timer,tnode);
-                }
-            } 
+            }else{
+                break;
+            }
         }
 
     }

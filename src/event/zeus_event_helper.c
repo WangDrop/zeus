@@ -119,7 +119,7 @@ zeus_status_t zeus_helper_mod_event(zeus_process_t *p,zeus_connection_t *conn){
                               (p->pidx)?"worker":"gateway");
                 return ZEUS_ERROR;
             }
-        
+
         }
 
         if(conn->wrstatus == ZEUS_EVENT_ON && conn->wr->timeout == ZEUS_EVENT_ON && !conn->wr->timeout_rbnode->lchild){
@@ -251,3 +251,11 @@ connection_error:
 
 }
 
+
+zeus_status_t zeus_helper_timeout_handler(zeus_process_t *p,zeus_event_t *ev){
+    
+    zeus_write_log(p->log,ZEUS_LOG_ERROR,"testtestttt");
+
+    return zeus_helper_close_connection(p,ev->connection);
+
+}

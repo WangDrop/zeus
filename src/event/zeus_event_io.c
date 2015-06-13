@@ -97,6 +97,7 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
     if(ev->connection->quiting == 1){
         zeus_helper_close_connection(p,ev->connection);
     }
+
     
     return ZEUS_OK;
 
@@ -142,12 +143,23 @@ zeus_status_t zeus_event_io_write(zeus_process_t *p,zeus_event_t *ev){
     
     if(ev->buffer->head == NULL){
         tconn = ev->connection;
+
         if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
 
             tconn->wrstatus = ZEUS_EVENT_OFF;
             tconn->rdstatus = ZEUS_EVENT_ON;
             tconn->rd->handler = zeus_event_io_read;
-
+           
+            tconn->rd->timeout = ZEUS_EVENT_ON;
+            if((tconn->rd->timeout_rbnode = zeus_event_timer_create_rbnode(p)) == NULL){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"create new connection rbnode error");
+                return ZEUS_ERROR;
+            }
+            tconn->rd->timeout_rbnode->ev = tconn->rd;
+            tconn->rd->timeout_rbnode->t.tv_sec = p->cache_time->tv_sec + ZEUS_EVENT_MAX_DELAY;
+            tconn->rd->timeout_rbnode->t.tv_usec = p->cache_time->tv_usec;
+            tconn->rd->timeout_handler = zeus_helper_timeout_handler;
+            
         }else{
 
             tconn->wrstatus = ZEUS_EVENT_OFF;
