@@ -85,7 +85,7 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
             current_buf = (zeus_buffer_t *)(lnode->d);
 
         }
-    
+
     }
     
     while(ev->buflen > ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE){
@@ -96,6 +96,20 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
 
     if(ev->connection->quiting == 1){
         zeus_helper_close_connection(p,ev->connection);
+    }else{
+        /* set new deadline */
+        if(ev->timeout == ZEUS_EVENT_ON && ev->timeout_rbnode->lchild != NULL){
+            if(zeus_event_timer_rbtree_delete(p->timer,ev->timeout_rbnode) == ZEUS_ERROR){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"delete rbtree node to modify deadline error");
+                return ZEUS_ERROR;
+            }
+            ev->timeout_rbnode->t.tv_sec = p->cache_time->tv_sec + ZEUS_EVENT_MAX_DELAY;
+            ev->timeout_rbnode->t.tv_usec = p->cache_time->tv_usec;
+            if(zeus_event_timer_rbtree_insert(p->timer,ev->timeout_rbnode) == ZEUS_ERROR){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"insert rbtree node to modify deadline error");
+                return ZEUS_ERROR;
+            }
+        }
     }
 
     

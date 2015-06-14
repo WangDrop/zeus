@@ -12,6 +12,7 @@
 #define ZEUS_PROTO_DATA_LEN_SIZE (sizeof(zeus_uint_t))
 #define ZEUS_PROTO_TRANS_SIZE (sizeof(zeus_idx_t))
 #define ZEUS_PROTO_IDX_SIZE (sizeof(zeus_idx_t))
+#define ZEUS_PROTO_CHILDREN_PROCESS_CNT_SIZE (sizeof(zeus_idx_t))
 
 #define ZEUS_PROTO_CLIENT_CHECKOUT_STRING_SIZE_MAX 32
 
