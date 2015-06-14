@@ -185,10 +185,6 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
         zeus_update_time();
 
         while((tnode = zeus_event_timer_rbtree_find_next(p->timer,p->timer->root)) != p->timer->nil){
-            zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%u %u %u %u",p->cache_time->tv_sec, \
-                                                                p->cache_time->tv_usec,\
-                                                                tnode->t.tv_sec,       \
-                                                                tnode->t.tv_usec);
             if(zeus_event_timer_rbtree_key_compare(p->cache_time,&tnode->t) == ZEUS_EVENT_TIMER_GT){
                     tnode->ev->timeout_handler(p,tnode->ev);
             }else{

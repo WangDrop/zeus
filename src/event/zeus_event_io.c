@@ -384,6 +384,18 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
     conn->rdstatus = ZEUS_EVENT_ON;
     conn->rd->handler = zeus_event_io_read;
     conn->rd->connection = conn;
+    
+    conn->rd->timeout = ZEUS_EVENT_ON;
+
+    if((conn->rd->timeout_rbnode = zeus_event_timer_create_rbnode(p)) == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process create new connection timer node error");
+        return ZEUS_ERROR;
+    }
+
+    conn->rd->timeout_rbnode->ev = conn->rd;
+    conn->rd->timeout_rbnode->t.tv_sec = p->cache_time->tv_sec + ZEUS_EVENT_MAX_DELAY;
+    conn->rd->timeout_rbnode->t.tv_usec = p->cache_time->tv_usec;
+    conn->rd->timeout_handler = zeus_helper_timeout_handler;
 
     if(zeus_proto_helper_set_connection_privilege(conn,ZEUS_PROTO_DATA_INS) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process set new connection recv data privilege error");
