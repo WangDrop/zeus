@@ -87,9 +87,10 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
         }
 
     }
-    
+
     while(ev->buflen > ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE){
         if(zeus_proto_solve_read_buf(p,ev) == ZEUS_ERROR){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"handle read content error");
             break;
         }
     }
@@ -267,6 +268,8 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
         return ZEUS_ERROR;
     }
 
+    tconn->quiting = 0;
+    tconn->admin = ZEUS_PROTO_NORMAL;
     tconn->wrstatus = ZEUS_EVENT_ON;
     tconn->wr->handler = zeus_event_io_write;
 
@@ -375,6 +378,7 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
     conn = (zeus_connection_t *)(node->d);
     conn->fd = *(zeus_int_t *)CMSG_DATA(&trans_socket.cmsg);
     conn->quiting = 0;
+    conn->admin = ZEUS_PROTO_NORMAL;
 
     if(fcntl(conn->fd,F_SETFL,O_NONBLOCK) == -1){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"set new connection nonblock error : %s",strerror(errno));

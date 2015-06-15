@@ -165,11 +165,11 @@ zeus_status_t zeus_helper_close_connection(zeus_process_t *p,zeus_connection_t* 
         return ZEUS_ERROR;
     }
     
-    // TODO 
-    // Check manage connection list
-    
-    zeus_delete_list(p->connection,node);
-   
+    if(conn->admin == ZEUS_PROTO_NORMAL){
+        zeus_delete_list(p->connection,node);
+    }else{
+        zeus_delete_list(p->admin_connection,node);
+    }
     
     if(zeus_recycle_connection_list_node_to_pool(p,conn->node) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process close connection error when recycle connection list node",\
@@ -254,8 +254,6 @@ connection_error:
 
 zeus_status_t zeus_helper_timeout_handler(zeus_process_t *p,zeus_event_t *ev){
     
-    zeus_write_log(p->log,ZEUS_LOG_ERROR,"testtestttt");
-
     return zeus_helper_close_connection(p,ev->connection);
 
 }

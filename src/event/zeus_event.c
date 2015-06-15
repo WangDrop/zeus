@@ -266,6 +266,17 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
 
     }
 
+    if(p->pidx != ZEUS_DATA_GATEWAY_PROCESS_INDEX){
+
+        if((p->admin_connection = zeus_create_list(p->pool,p->log)) == NULL){
+
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process create admin connection list error");
+            return ZEUS_ERROR;
+    
+        }
+
+    }
+
     if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
 
         if((node = zeus_create_connection_list_node(p)) == NULL){

@@ -38,6 +38,8 @@ struct zeus_connection_s{
     
     zeus_uint_t *privilege;
 
+    zeus_uint_t admin;
+
 };
 
 

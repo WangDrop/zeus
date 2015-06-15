@@ -8,6 +8,9 @@
 #ifndef __ZEUS_PROTO_HEADER_H_H_H__
 #define __ZEUS_PROTO_HEADER_H_H_H__
 
+#define ZEUS_PROTO_NORMAL 0x00
+#define ZEUS_PROTO_ADMIN 0x01
+
 #define ZEUS_PROTO_OPCODE_SIZE (sizeof(zeus_uchar_t))
 #define ZEUS_PROTO_DATA_LEN_SIZE (sizeof(zeus_uint_t))
 #define ZEUS_PROTO_TRANS_SIZE (sizeof(zeus_idx_t))
