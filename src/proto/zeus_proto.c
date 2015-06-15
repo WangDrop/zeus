@@ -25,6 +25,12 @@ zeus_status_t zeus_proto_send_reset_load_balance_packet(zeus_process_t *p,zeus_e
 
 }
 
+zeus_status_t zeus_proto_ack_client_after_trans(zeus_process_t *p,zeus_event_t *ev){
+
+    return zeus_proto_helper_generate_ack_client_after_trans_packet(p,ev);
+
+}
+
 zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_uchar_t opcode;
@@ -41,8 +47,6 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_proto_helper_get_opcode_and_pktlen(ev,&opcode,&len);
     
-    zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%u %u",opcode,len);
-
     if(zeus_proto_helper_check_opcode_privilege_of_connection(ev->connection,opcode) == ZEUS_ERROR){
         goto solve_error;
     }
@@ -58,9 +62,6 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
             case ZEUS_PROTO_CLIENT_CHECKOUT_INS:
 
-                zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s process check the client hash",\
-                                                      (p->pidx)?"worker":"gateway");
-                
                 if(len != ZEUS_PROTO_CLIENT_CHECKOUT_STRING_SIZE_MAX + ZEUS_PROTO_TRANS_SIZE)
                     goto len_error;
 
@@ -76,6 +77,10 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
                     if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
 
+                        if(ev->connection->check == ZEUS_PROTO_CHECK){
+                            goto solve_error;
+                        }
+
                         worker_idx = *(zeus_idx_t *)&(client_check_data[ZEUS_PROTO_CLIENT_CHECKOUT_STRING_SIZE_MAX]);
                         worker_idx = ntohl(worker_idx);
 
@@ -84,7 +89,9 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                     
                         if(worker_idx >= p->worker || worker_idx < 0)
                             goto worker_idx_error;
-                        
+
+                        ev->connection->check = ZEUS_PROTO_CHECK;
+
                         if(zeus_helper_trans_socket(p,ev->connection,worker_idx) == ZEUS_ERROR){
                             zeus_write_log(p->log,ZEUS_LOG_ERROR,"set trans socket file descriptor event error");
                             return ZEUS_ERROR;
@@ -92,7 +99,8 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
                     }else{
 
-                        zeus_write_log(p->log,ZEUS_LOG_NOTICE,"this is the admin");
+                        zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s:%hu is an admin client",\
+                                       ev->connection->addr_string->data,ntohs(ev->connection->peer->sin_port));
                         
                         if(ev->connection->admin == ZEUS_PROTO_NORMAL){
                             zeus_delete_list(p->connection,ev->connection->node);
@@ -106,7 +114,14 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                     
 
                     if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
+
+                        if(ev->connection->check == ZEUS_PROTO_CHECK){
+                            goto solve_error;
+                        }
+
                         worker_idx = zeus_helper_find_load_lowest(p);
+
+                        ev->connection->check = ZEUS_PROTO_CHECK;
                     
                         zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s:%hu is an ordinary client : send to %d",\
                                        ev->connection->addr_string->data,ntohs(ev->connection->peer->sin_port),worker_idx);
@@ -119,6 +134,9 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                     }else{
 
                         if(ev->connection->admin == ZEUS_PROTO_ADMIN){
+
+                            zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s:%hu is an ordinary client",\
+                                           ev->connection->addr_string->data,ntohs(ev->connection->peer->sin_port));
 
                             zeus_delete_list(p->admin_connection,ev->connection->node);
                             zeus_insert_list(p->connection,ev->connection->node);

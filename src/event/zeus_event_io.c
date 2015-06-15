@@ -90,7 +90,6 @@ zeus_status_t zeus_event_io_read(zeus_process_t *p,zeus_event_t *ev){
 
     while(ev->buflen > ZEUS_PROTO_OPCODE_SIZE + ZEUS_PROTO_DATA_LEN_SIZE){
         if(zeus_proto_solve_read_buf(p,ev) == ZEUS_ERROR){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"handle read content error");
             break;
         }
     }
@@ -270,6 +269,7 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
 
     tconn->quiting = 0;
     tconn->admin = ZEUS_PROTO_NORMAL;
+    tconn->check = ZEUS_PROTO_UNCHECK;
     tconn->wrstatus = ZEUS_EVENT_ON;
     tconn->wr->handler = zeus_event_io_write;
 
@@ -379,6 +379,36 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
     conn->fd = *(zeus_int_t *)CMSG_DATA(&trans_socket.cmsg);
     conn->quiting = 0;
     conn->admin = ZEUS_PROTO_NORMAL;
+    conn->check = ZEUS_PROTO_UNCHECK;
+
+    if(!conn->peer){
+
+        if((conn->peer = (zeus_sockaddr_in_t *)zeus_memory_alloc(p->pool,sizeof(zeus_sockaddr_in_t))) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"create new connection sockaddr_in struct error");
+            return ZEUS_ERROR;
+        }
+
+        if((conn->peerlen = (zeus_socklen_t *)zeus_memory_alloc(p->pool,sizeof(zeus_socklen_t))) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"create new connection socket_t error");
+            return ZEUS_ERROR;
+        }
+
+        if((conn->addr_string = zeus_create_string(p,ZEUS_IPV4_ADDRESS_STRING_SIZE)) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"create new connection address string error");
+            return ZEUS_ERROR;
+        }
+    
+    }
+
+    if(getsockname(conn->fd,(zeus_sockaddr_t *)conn->peer,conn->peerlen) == -1){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"get new connection address error");
+        return ZEUS_ERROR;
+    }
+
+    if(inet_ntop(AF_INET,(const void *)&conn->peer->sin_addr,conn->addr_string->data,conn->addr_string->size) == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"trans sin_addr to string error");
+        return ZEUS_ERROR;
+    }
 
     if(fcntl(conn->fd,F_SETFL,O_NONBLOCK) == -1){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"set new connection nonblock error : %s",strerror(errno));
@@ -387,8 +417,6 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
 
     conn->rdstatus = ZEUS_EVENT_ON;
     conn->rd->handler = zeus_event_io_read;
-    conn->rd->connection = conn;
-    
     conn->rd->timeout = ZEUS_EVENT_ON;
 
     if((conn->rd->timeout_rbnode = zeus_event_timer_create_rbnode(p)) == NULL){
@@ -408,6 +436,14 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
 
     if(zeus_proto_helper_set_connection_privilege(conn,ZEUS_PROTO_CLIENT_CHECKOUT_INS) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process set new connection check client privilege error");
+        return ZEUS_ERROR;
+    }
+
+    conn->wrstatus = ZEUS_EVENT_ON;
+    conn->wr->handler = zeus_event_io_write;
+
+    if(zeus_proto_ack_client_after_trans(p,conn->wr) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate ack client after trans from gateway error");
         return ZEUS_ERROR;
     }
 

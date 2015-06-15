@@ -68,6 +68,22 @@ zeus_status_t zeus_proto_helper_generate_reset_load_balance_packet(zeus_process_
 
 }
 
+zeus_status_t zeus_proto_helper_generate_ack_client_after_trans_packet(zeus_process_t *p,zeus_event_t *ev){
+
+    if(zeus_proto_buffer_write_byte(p,ev,ZEUS_PROTO_ACK_CLIENT_AFTER_TRANS) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate ack client after trans packet (message type) error");
+        return ZEUS_ERROR;
+    }
+
+    if(zeus_proto_buffer_write_uint(p,ev,ZEUS_PROTO_NOP_SIZE) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate ack client after trans packet (message size) error");
+        return ZEUS_ERROR;
+    }
+
+    return ZEUS_OK;
+
+}
+
 void zeus_proto_helper_get_opcode_and_pktlen(zeus_event_t *ev,zeus_uchar_t *opcode,zeus_uint_t *len){
     
     zeus_size_t leftsize;

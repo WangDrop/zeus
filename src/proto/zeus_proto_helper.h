@@ -20,5 +20,6 @@ zeus_status_t zeus_proto_helper_get_channel_index(zeus_process_t *,zeus_event_t 
 zeus_status_t zeus_proto_helper_generate_reset_load_balance_packet(zeus_process_t *,zeus_event_t *);
 zeus_status_t zeus_proto_helper_set_connection_privilege(zeus_connection_t *,zeus_uint_t);
 zeus_status_t zeus_proto_helper_check_opcode_privilege_of_connection(zeus_connection_t *,zeus_uchar_t);
+zeus_status_t zeus_proto_helper_generate_ack_client_after_trans_packet(zeus_process_t *,zeus_event_t *);
 
 #endif

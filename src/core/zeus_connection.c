@@ -76,6 +76,7 @@ zeus_connection_t *zeus_create_connection_node(zeus_process_t *process){
     alloc_connection->quiting = 0;
     alloc_connection->node = NULL;
     alloc_connection->admin = ZEUS_PROTO_NORMAL;
+    alloc_connection->check = ZEUS_PROTO_UNCHECK;
 
     return alloc_connection;
 
@@ -171,6 +172,7 @@ zeus_status_t zeus_recycle_connection_list_node_to_pool(zeus_process_t *process,
 
     zeus_memset(conn->privilege,0,ZEUS_PROTO_INS_MAX);
     conn->admin = ZEUS_PROTO_NORMAL;
+    conn->check = ZEUS_PROTO_UNCHECK;
     
     z->prev = NULL;
     z->next = process->connection_pool;

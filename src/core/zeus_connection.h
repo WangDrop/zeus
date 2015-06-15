@@ -40,6 +40,8 @@ struct zeus_connection_s{
 
     zeus_uint_t admin;
 
+    zeus_uint_t check;
+
 };
 
 
