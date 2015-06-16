@@ -397,10 +397,12 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
             zeus_write_log(p->log,ZEUS_LOG_ERROR,"create new connection address string error");
             return ZEUS_ERROR;
         }
+
+        *(conn->peerlen) = sizeof(zeus_sockaddr_in_t);
     
     }
 
-    if(getsockname(conn->fd,(zeus_sockaddr_t *)conn->peer,conn->peerlen) == -1){
+    if(getpeername(conn->fd,(zeus_sockaddr_t *)conn->peer,conn->peerlen) == -1){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"get new connection address error");
         return ZEUS_ERROR;
     }
