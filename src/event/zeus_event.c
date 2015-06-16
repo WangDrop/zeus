@@ -93,6 +93,8 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
     zeus_int_t tidx;
     zeus_connection_t *tconn;
 
+    
+    zeus_uint_t old_worker_load;
 
     if(zeus_event_loop_init_signal(p) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process init loop signal error",\
@@ -130,6 +132,10 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
     p->cache_time = zeus_get_cache_timeval();
 
     for(;;){ 
+
+        if(p->pidx != ZEUS_DATA_GATEWAY_PROCESS_INDEX){
+            old_worker_load = p->worker_load[p->pidx];
+        }
         
         if(zeus_quit == 1){
             zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s process will quit",(p->pidx)?"worker":"gateway");
@@ -189,6 +195,20 @@ zeus_status_t zeus_event_loop(zeus_process_t *p){
                     tnode->ev->timeout_handler(p,tnode->ev);
             }else{
                 break;
+            }
+        }
+
+        if(p->pidx != ZEUS_DATA_GATEWAY_PROCESS_INDEX && old_worker_load != p->worker_load[p->pidx]){
+            if(zeus_proto_send_update_workload_packet(p,p->ipc_connection->wr) == ZEUS_ERROR){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process send back update workload error");
+                return ZEUS_ERROR;
+            }
+            if(p->ipc_connection->wrstatus == ZEUS_EVENT_OFF){
+                p->ipc_connection->wrstatus = ZEUS_EVENT_ON;
+                if(zeus_helper_mod_event(p,p->ipc_connection) == ZEUS_ERROR){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process set send back update workload event error");
+                    return ZEUS_ERROR;
+                }
             }
         }
 
@@ -257,25 +277,22 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
     zeus_connection_t *conn;
     zeus_idx_t idx;
 
-    if((p->connection = zeus_create_list(p->pool,p->log)) == NULL){
-        
-        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create connection list error",\
-                      (p->pidx)?"worker":"gateway");
+    if((p->admin_connection = zeus_create_list(p->pool,p->log)) == NULL){
 
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create admin connection list error",\
+                       (p->pidx)?"worker":"gateway");
         return ZEUS_ERROR;
-
-    }
-
-    if(p->pidx != ZEUS_DATA_GATEWAY_PROCESS_INDEX){
-
-        if((p->admin_connection = zeus_create_list(p->pool,p->log)) == NULL){
-
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process create admin connection list error");
-            return ZEUS_ERROR;
     
-        }
-
     }
+    
+    if((p->client_connection = zeus_create_list(p->pool,p->log)) == NULL){
+
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create client connection list error",\
+                       (p->pidx)?"worker":"gateway");
+        return ZEUS_ERROR;
+    
+    }
+
 
     if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
 
@@ -291,14 +308,16 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         conn->quiting = 0;
         
         p->listen_connection_node = node;
+        
+        if((p->ipc_connection = zeus_create_connection_array(p,p->worker)) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create ipc connection array error",\
+                           (p->pidx)?"worker":"gateway");
+            return ZEUS_ERROR;
+        }
 
         for(idx = 0 ; idx < p->worker ; ++ idx){
-            if((node = zeus_create_connection_list_node(p)) == NULL){
-                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process create unix socket connection list node error");
-                return ZEUS_ERROR;
-            }
-
-            conn = (zeus_connection_t *)(node->d);
+            
+            conn = &(p->ipc_connection[idx]);
             conn->fd = p->channel[idx][0];
             conn->rd->handler = zeus_event_io_read;
             conn->rdstatus = ZEUS_EVENT_ON;
@@ -313,19 +332,26 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
                 return ZEUS_ERROR;
             }
 
+            if(zeus_proto_helper_set_connection_privilege(conn,ZEUS_PROTO_UPDATE_LOAD_INS) == ZEUS_ERROR){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway open update work load privilege error");
+                return ZEUS_ERROR;
+            }
+
             conn->wr->handler = zeus_event_io_send_socket;
             conn->wrstatus = ZEUS_EVENT_OFF;
             conn->quiting = 0;
-            zeus_insert_list(p->connection,node);
+
         }
 
     }else{
 
-        if((node = zeus_create_connection_list_node(p)) == NULL){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process create connection list node error");
+        if((p->ipc_connection = zeus_create_connection_array(p,1)) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process create ipc connection array error",\
+                           (p->pidx)?"worker":"gateway");
             return ZEUS_ERROR;
         }
-        conn = (zeus_connection_t *)(node->d);
+        
+        conn = p->ipc_connection;
         conn->fd = p->channel[p->pidx - 1][1];
         conn->rd->handler = zeus_event_io_recv_socket;
         conn->rdstatus = ZEUS_EVENT_ON;
@@ -334,7 +360,6 @@ zeus_status_t zeus_event_loop_init_connection(zeus_process_t *p){
         conn->wr->handler = zeus_event_io_write;
         conn->wrstatus = ZEUS_EVENT_ON;
         conn->quiting = 0;
-        zeus_insert_list(p->connection,node);
 
     }
 
@@ -356,30 +381,29 @@ zeus_status_t zeus_event_create_epfd(zeus_process_t *p){
 
 zeus_status_t zeus_event_init_epoll(zeus_process_t *p){
     
-    zeus_list_data_t *cnode = p->connection->head; 
-    zeus_connection_t *conn;
-
-    while(cnode){
-
-        conn = (zeus_connection_t *)(cnode->d);
-
-        if(zeus_helper_add_event(p,conn) == ZEUS_ERROR){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"%s process init epoll add fd event error",\
-                          (p->pidx)?"worker":"gateway");
-            cnode = cnode->next;
-            continue;
-        }
-
-        cnode = cnode->next;
-
-    }
+    zeus_uint_t idx;
 
     if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
-        conn = (zeus_connection_t *)(p->listen_connection_node->d);
-        if(zeus_helper_add_event(p,conn) == ZEUS_ERROR){
-            zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process add listenfd event error");
+        
+        for(idx = 0 ; idx < p->worker ; ++ idx){
+            if(zeus_helper_add_event(p,&p->ipc_connection[idx]) == ZEUS_ERROR){
+                zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process init epoll add ipc connection event error");
+                return ZEUS_ERROR;
+            }
+        }
+
+        if(zeus_helper_add_event(p,(zeus_connection_t *)(p->listen_connection_node->d)) == ZEUS_ERROR){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"gateway process init epoll add listen socket event error");
             return ZEUS_ERROR;
         }
+
+    }else{
+    
+        if(zeus_helper_add_event(p,p->ipc_connection) == ZEUS_ERROR){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"worker process init epoll add ipc connection event error");
+            return ZEUS_ERROR;
+        }
+        
     }
 
     return ZEUS_OK;

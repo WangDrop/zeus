@@ -47,6 +47,8 @@ struct zeus_connection_s{
 
 zeus_list_data_t *zeus_create_connection_list_node(zeus_process_t *);
 
+zeus_connection_t *zeus_create_connection_array(zeus_process_t *,zeus_uint_t);
+
 zeus_status_t zeus_recycle_connection_list_node_to_pool(zeus_process_t *,zeus_list_data_t *);
 
 

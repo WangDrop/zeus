@@ -501,7 +501,7 @@ zeus_status_t zeus_config_gateworker_log_path(zeus_process_t *process){
     if(process->pidx == 0){
         nwrite = snprintf(beg,zeus_addr_delta(end,beg),"zeus.gateway.log");
     }else{
-        nwrite = snprintf(beg,zeus_addr_delta(end,beg),"zeus.worker%d.log",process->pidx);
+        nwrite = snprintf(beg,zeus_addr_delta(end,beg),"zeus.worker%d.log",process->pidx - 1);
     }
     
     beg += nwrite;

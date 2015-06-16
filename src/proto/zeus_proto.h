@@ -20,6 +20,8 @@ zeus_status_t zeus_proto_ack_client_after_trans(zeus_process_t *,zeus_event_t *)
 
 zeus_status_t zeus_proto_send_reset_load_balance_packet(zeus_process_t *,zeus_event_t *);
 
+zeus_status_t zeus_proto_send_update_workload_packet(zeus_process_t *,zeus_event_t *);
+
 zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *,zeus_event_t *);
 
 #endif

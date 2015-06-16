@@ -57,8 +57,9 @@ zeus_process_t *zeus_create_process(void){
     alloc_process->worker_load = NULL;
     alloc_process->listen_connection_node = NULL;
 
-    alloc_process->connection = NULL;
+    alloc_process->ipc_connection = NULL;
     alloc_process->admin_connection = NULL;
+    alloc_process->client_connection = NULL;
     
     return alloc_process;
 

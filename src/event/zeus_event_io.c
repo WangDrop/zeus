@@ -275,7 +275,7 @@ zeus_status_t zeus_event_io_accept(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_helper_add_event(p,tconn);
     
-    zeus_insert_list(p->connection,tnode);
+    zeus_insert_list(p->client_connection,tnode);
 
 
     return ZEUS_OK;
@@ -452,7 +452,7 @@ zeus_status_t zeus_event_io_recv_socket(zeus_process_t *p,zeus_event_t *ev){
         return ZEUS_ERROR;
     }
 
-    zeus_insert_list(p->connection,node);
+    zeus_insert_list(p->client_connection,node);
 
     if(zeus_proto_trans_socket_ack(p,ev->connection->wr) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate send back trans socket ack packet error");

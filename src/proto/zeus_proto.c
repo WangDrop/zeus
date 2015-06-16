@@ -31,6 +31,12 @@ zeus_status_t zeus_proto_ack_client_after_trans(zeus_process_t *p,zeus_event_t *
 
 }
 
+zeus_status_t zeus_proto_send_update_workload_packet(zeus_process_t *p,zeus_event_t *ev){
+
+    return zeus_proto_helper_generate_update_workload_packet(p,ev);
+
+}
+
 zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
     zeus_uchar_t opcode;
@@ -44,6 +50,10 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
     /* ZEUS_PROTO_TRANS_SOCKET_ACK_INS */
     zeus_idx_t idx;
     /* ZEUS_PROTO_TRANS_SOCKET_ACK_INS */
+
+    /* ZEUS_PROTO_UPDATE_LOAD_INS */
+    zeus_uint_t load;
+    /* ZEUS_PROTO_UPDATE_LOAD_INS */
 
     zeus_proto_helper_get_opcode_and_pktlen(ev,&opcode,&len);
     
@@ -73,8 +83,6 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                 if(zeus_proto_helper_check_hash(p->manage_passwd,client_check_data,\
                                                 ZEUS_PROTO_CLIENT_CHECKOUT_STRING_SIZE_MAX) == ZEUS_OK){
                     
-                    ev->connection->admin = ZEUS_PROTO_ADMIN;
-
                     if(p->pidx == ZEUS_DATA_GATEWAY_PROCESS_INDEX){
 
                         if(ev->connection->check == ZEUS_PROTO_CHECK){
@@ -91,6 +99,10 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                             goto worker_idx_error;
 
                         ev->connection->check = ZEUS_PROTO_CHECK;
+                        ev->connection->admin = ZEUS_PROTO_ADMIN;
+
+                        zeus_delete_list(p->client_connection,ev->connection->node);
+                        zeus_insert_list(p->admin_connection,ev->connection->node);
 
                         if(zeus_helper_trans_socket(p,ev->connection,worker_idx) == ZEUS_ERROR){
                             zeus_write_log(p->log,ZEUS_LOG_ERROR,"set trans socket file descriptor event error");
@@ -99,12 +111,17 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
                     }else{
 
-                        zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s:%hu is an admin client",\
-                                       ev->connection->addr_string->data,ntohs(ev->connection->peer->sin_port));
                         
                         if(ev->connection->admin == ZEUS_PROTO_NORMAL){
-                            zeus_delete_list(p->connection,ev->connection->node);
+                            
+                            zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s:%hu is an admin client",\
+                                           ev->connection->addr_string->data,ntohs(ev->connection->peer->sin_port));
+
+                            ev->connection->check = ZEUS_PROTO_CHECK;
+                            ev->connection->admin = ZEUS_PROTO_ADMIN;
+                            zeus_delete_list(p->client_connection,ev->connection->node);
                             zeus_insert_list(p->admin_connection,ev->connection->node);
+
                         }
 
                     }
@@ -122,6 +139,7 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                         worker_idx = zeus_helper_find_load_lowest(p);
 
                         ev->connection->check = ZEUS_PROTO_CHECK;
+                        ev->connection->admin = ZEUS_PROTO_NORMAL;
                     
                         zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s:%hu is an ordinary client : send to %d",\
                                        ev->connection->addr_string->data,ntohs(ev->connection->peer->sin_port),worker_idx);
@@ -138,8 +156,11 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                             zeus_write_log(p->log,ZEUS_LOG_NOTICE,"%s:%hu is an ordinary client",\
                                            ev->connection->addr_string->data,ntohs(ev->connection->peer->sin_port));
 
+                            ev->connection->check = ZEUS_PROTO_CHECK;
+                            ev->connection->admin = ZEUS_PROTO_NORMAL;
+
                             zeus_delete_list(p->admin_connection,ev->connection->node);
-                            zeus_insert_list(p->connection,ev->connection->node);
+                            zeus_insert_list(p->client_connection,ev->connection->node);
 
                         }
                     
@@ -167,7 +188,8 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
 
                 zeus_write_log(p->log,ZEUS_LOG_NOTICE,"recv socket ack from channel %d",idx);
 
-                p->worker_load[idx] -= 1;
+                p->worker_load[p->pidx] -= 1;
+                p->worker_load[idx] += 1;
 
                 break;
 
@@ -188,6 +210,27 @@ zeus_status_t zeus_proto_solve_read_buf(zeus_process_t *p,zeus_event_t *ev){
                 zeus_write_log(p->log,ZEUS_LOG_NOTICE,"recv reset load balance from channel %d",idx);
 
                 p->worker_load[idx] = 0;
+
+                break;
+
+            case ZEUS_PROTO_UPDATE_LOAD_INS:
+
+                if(len != ZEUS_PROTO_IDX_SIZE + ZEUS_PROTO_UINT_SIZE){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"wrong channel index or work load (ZEUS_PROTO_UPDATE_LOAD_INS)");
+                    return ZEUS_ERROR;
+                }
+
+                if(zeus_proto_helper_get_channel_index_and_load(p,ev,&idx,&load) == ZEUS_ERROR){
+                    zeus_write_log(p->log,ZEUS_LOG_ERROR,"get channel index and load error (ZEUS_PROTO_UPDATE_LOAD_INS)");
+                    return ZEUS_ERROR;
+                }
+
+                idx = ntohl(idx);
+                load = ntohl(load);
+
+                zeus_write_log(p->log,ZEUS_LOG_NOTICE,"set channel %d's load to %u",idx,load);
+
+                p->worker_load[idx] = load;
 
                 break;
 

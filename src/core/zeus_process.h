@@ -47,8 +47,9 @@ struct zeus_process_s{
     zeus_uint_t *worker_load;
 
 
-    zeus_list_t *connection;
+    zeus_connection_t * ipc_connection;
     zeus_list_t *admin_connection;
+    zeus_list_t *client_connection;
     zeus_fd_t epfd;
     zeus_event_timer_rbtree_t *timer;
     zeus_timeval_t *cache_time;

@@ -166,7 +166,7 @@ zeus_status_t zeus_helper_close_connection(zeus_process_t *p,zeus_connection_t* 
     }
     
     if(conn->admin == ZEUS_PROTO_NORMAL){
-        zeus_delete_list(p->connection,node);
+        zeus_delete_list(p->client_connection,node);
     }else{
         zeus_delete_list(p->admin_connection,node);
     }
@@ -177,7 +177,8 @@ zeus_status_t zeus_helper_close_connection(zeus_process_t *p,zeus_connection_t* 
         return ZEUS_ERROR;
     }
 
-    
+    p->worker_load[p->pidx] -= 1;
+
     return ZEUS_OK;
 
 }
@@ -205,24 +206,13 @@ zeus_idx_t zeus_helper_find_load_lowest(zeus_process_t *p){
 zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn,zeus_idx_t idx){
 
     zeus_list_data_t *node = conn->node;
-    zeus_list_data_t *r = p->connection->head;
-    zeus_connection_t *c;
+    zeus_connection_t *c = &(p->ipc_connection[idx]);
     
-    if(!r){
-        goto connection_error;
+    if(conn->admin == ZEUS_PROTO_ADMIN){
+        zeus_delete_list(p->admin_connection,node);
+    }else{
+        zeus_delete_list(p->client_connection,node);
     }
-    
-    while(idx --){
-        if(!r->next){
-            goto connection_error;
-        }
-        r = r->next;
-        if(!r){
-            goto connection_error;
-        }
-    }
-    
-    zeus_delete_list(p->connection,node);
 
     conn->rdstatus = ZEUS_EVENT_OFF;
     conn->wrstatus = ZEUS_EVENT_OFF;
@@ -232,11 +222,9 @@ zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn
         return ZEUS_ERROR;
     }
     
-    c = (zeus_connection_t *)r->d;
     c->wrstatus = ZEUS_EVENT_ON;
-    
-    zeus_insert_list(c->wr->buffer,node);
     c->wr->buflen += 1;
+    zeus_insert_list(c->wr->buffer,node);
     
     if(zeus_helper_mod_event(p,c) == ZEUS_ERROR){
         zeus_write_log(p->log,ZEUS_LOG_ERROR,"set trans socket event error");
@@ -245,10 +233,6 @@ zeus_status_t zeus_helper_trans_socket(zeus_process_t *p,zeus_connection_t *conn
 
     return ZEUS_OK;
     
-connection_error:
-    zeus_write_log(p->log,ZEUS_LOG_ERROR,"something wrong with connection list");
-    return ZEUS_ERROR;
-
 }
 
 

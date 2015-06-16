@@ -68,6 +68,32 @@ zeus_status_t zeus_proto_helper_generate_reset_load_balance_packet(zeus_process_
 
 }
 
+zeus_status_t zeus_proto_helper_generate_update_workload_packet(zeus_process_t *p,zeus_event_t *ev){
+
+    if(zeus_proto_buffer_write_byte(p,ev,ZEUS_PROTO_UPDATE_LOAD_INS) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate update load packet (message type) error");
+        return ZEUS_ERROR;
+    }
+
+    if(zeus_proto_buffer_write_uint(p,ev,ZEUS_PROTO_IDX_SIZE + ZEUS_PROTO_UINT_SIZE) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate update load packet (message size) error");
+        return ZEUS_ERROR;
+    }
+
+    if(zeus_proto_buffer_write_uint(p,ev,p->pidx - 1) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate update load packet (message) error");
+        return ZEUS_ERROR;
+    }
+
+    if(zeus_proto_buffer_write_uint(p,ev,p->worker_load[p->pidx]) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"generate update load packet (message) error");
+        return ZEUS_ERROR;
+    }
+
+    return ZEUS_OK;
+
+}
+
 zeus_status_t zeus_proto_helper_generate_ack_client_after_trans_packet(zeus_process_t *p,zeus_event_t *ev){
 
     if(zeus_proto_buffer_write_byte(p,ev,ZEUS_PROTO_ACK_CLIENT_AFTER_TRANS) == ZEUS_ERROR){
@@ -223,6 +249,24 @@ zeus_status_t zeus_proto_helper_get_channel_index(zeus_process_t *p,zeus_event_t
 
     return zeus_proto_buffer_read_uint(p,ev,(zeus_uint_t *)idx);
 
+
+}
+
+zeus_status_t zeus_proto_helper_get_channel_index_and_load(zeus_process_t *p,zeus_event_t *ev,zeus_idx_t *idx,zeus_uint_t *load){
+
+    zeus_proto_helper_move_forward_opcode_and_pklen(p,ev);
+
+    if(zeus_proto_buffer_read_uint(p,ev,(zeus_uint_t *)idx) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"get channel index error");
+        return ZEUS_ERROR;
+    }
+
+    if(zeus_proto_buffer_read_uint(p,ev,load) == ZEUS_ERROR){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"get channel load error");
+        return ZEUS_ERROR;
+    }
+    
+    return ZEUS_OK;
 
 }
 

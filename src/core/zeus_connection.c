@@ -33,12 +33,6 @@ zeus_list_data_t *zeus_create_connection_list_node(zeus_process_t *process){
     alloc_node->next = NULL;
     alloc_node->d = (void *)alloc_connection;
     alloc_connection->node = alloc_node;
-    if((alloc_connection->privilege = (zeus_uint_t *)zeus_memory_alloc(process->pool,ZEUS_PROTO_INS_MAX)) == NULL){
-        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create connection privilege part error");
-        return NULL;
-    }
-
-    zeus_memset(alloc_connection->privilege,0,ZEUS_PROTO_INS_MAX);
 
     return alloc_node;
 
@@ -49,13 +43,11 @@ zeus_connection_t *zeus_create_connection_node(zeus_process_t *process){
 	
     zeus_connection_t *alloc_connection;
 
-    alloc_connection = (zeus_connection_t *)zeus_memory_alloc(process->pool,sizeof(zeus_connection_t));
-	
-    if(alloc_connection == NULL){
-        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create connection node error");
+    if((alloc_connection = (zeus_connection_t *)zeus_memory_alloc(process->pool,sizeof(zeus_connection_t))) == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"alloc connection memory error");
         return NULL;
     }
-
+	
     if((alloc_connection->rd = zeus_create_event(process,alloc_connection)) == NULL){
         zeus_write_log(process->log,ZEUS_LOG_ERROR,"create connection read event error");
         return NULL;
@@ -77,9 +69,62 @@ zeus_connection_t *zeus_create_connection_node(zeus_process_t *process){
     alloc_connection->node = NULL;
     alloc_connection->admin = ZEUS_PROTO_NORMAL;
     alloc_connection->check = ZEUS_PROTO_UNCHECK;
+    
+    if((alloc_connection->privilege = (zeus_uint_t *)zeus_memory_alloc(process->pool,ZEUS_PROTO_INS_MAX)) == NULL){
+        zeus_write_log(process->log,ZEUS_LOG_ERROR,"create connection privilege part error");
+        return NULL;
+    }
+
+    zeus_memset(alloc_connection->privilege,0,ZEUS_PROTO_INS_MAX);
 
     return alloc_connection;
 
+}
+
+zeus_connection_t *zeus_create_connection_array(zeus_process_t *p,zeus_uint_t sz){
+
+    zeus_uint_t idx;
+    zeus_connection_t *alloc_connection_array;
+
+    if((alloc_connection_array = (zeus_connection_t *)zeus_memory_alloc(p->pool,sz * sizeof(zeus_connection_t))) == NULL){
+        zeus_write_log(p->log,ZEUS_LOG_ERROR,"alloc connection array memory error");
+        return NULL;
+    }
+
+    for(idx = 0 ; idx < sz ; ++ idx){
+
+        alloc_connection_array[idx].peer = NULL;
+        alloc_connection_array[idx].peerlen = NULL;
+        alloc_connection_array[idx].addr_string = NULL;
+        alloc_connection_array[idx].quiting = 0;
+        alloc_connection_array[idx].node = NULL;
+        alloc_connection_array[idx].admin = ZEUS_PROTO_NORMAL;
+        alloc_connection_array[idx].check = ZEUS_PROTO_UNCHECK;
+
+        if((alloc_connection_array[idx].rd = zeus_create_event(p,&alloc_connection_array[idx])) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"alloc connection read event error");
+            return NULL;
+        }
+
+        if((alloc_connection_array[idx].wr = zeus_create_event(p,&alloc_connection_array[idx])) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"alloc connection write event error");
+            return NULL;
+        }
+
+        alloc_connection_array[idx].rdstatus = ZEUS_EVENT_OFF;
+        alloc_connection_array[idx].wrstatus = ZEUS_EVENT_OFF;
+        
+        if((alloc_connection_array[idx].privilege = (zeus_uint_t *)zeus_memory_alloc(p->pool,ZEUS_PROTO_INS_MAX)) == NULL){
+            zeus_write_log(p->log,ZEUS_LOG_ERROR,"alloc connection privilege part error");
+            return NULL;
+        }
+
+        zeus_memset(alloc_connection_array[idx].privilege,0,ZEUS_PROTO_INS_MAX);
+
+    }
+    
+
+    return alloc_connection_array;
 }
 
 
